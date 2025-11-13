@@ -1,4 +1,3 @@
-import React from 'react'
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
 import ProtectedRoute from './routes/ProtectedRoute'
 import RegistroCita from './pages/RegistroCita'
@@ -8,7 +7,7 @@ import GestionTerapias from './pages/GestionTerapias'
 import Calendario from './pages/Calendario'
 import { AuthProvider, useAuth } from './auth/mockAuth'
 
-const Nav: React.FC = () => {
+const Nav = () => {
   const { role, loginAs, logout } = useAuth()
   return (
     <header className="app-header">

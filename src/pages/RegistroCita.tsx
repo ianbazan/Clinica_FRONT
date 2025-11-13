@@ -1,4 +1,3 @@
-import React from 'react'
 import './RegistroCita.css'
 
 export default function RegistroCita() {

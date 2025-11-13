@@ -1,16 +1,17 @@
-import React, { useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 
 interface Props {
   open: boolean
   title?: string
   onClose: () => void
-  children?: React.ReactNode
+  children?: ReactNode
 }
 
 export default function Modal({ open, title, onClose, children }: Props) {
   if (!open) return null
-  const overlayStyle: React.CSSProperties = {
+  const overlayStyle: CSSProperties = {
     position: 'fixed',
     inset: 0,
     background: 'rgba(0,0,0,0.45)',
@@ -20,7 +21,7 @@ export default function Modal({ open, title, onClose, children }: Props) {
     zIndex: 200000,
   }
 
-  const contentStyle: React.CSSProperties = {
+  const contentStyle: CSSProperties = {
     background: '#fff',
     borderRadius: 8,
     width: '90%',

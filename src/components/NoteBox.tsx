@@ -1,6 +1,6 @@
-import React from 'react'
+import type { ReactNode } from 'react'
 
-const NoteBox: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
+const NoteBox = ({ children }: { children?: ReactNode }) => {
   return (
     <div className="note-floating" role="note">
       {children}

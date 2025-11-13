@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { patients } from '../data/mockPatients'
 import Select from '../components/Select'
 

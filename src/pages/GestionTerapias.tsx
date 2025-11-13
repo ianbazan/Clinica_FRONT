@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { therapies } from '../data/mockTherapies'
 import Select from '../components/Select'
 

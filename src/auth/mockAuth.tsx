@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState } from 'react'
+import type { ReactNode } from 'react'
+import { createContext, useContext, useState } from 'react'
 
 type Role = 'Admin' | 'Psicologo' | 'Operadora' | null
 
@@ -10,7 +11,7 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [role, setRole] = useState<Role>('Admin')
   const loginAs = (r: Role) => setRole(r)
   const logout = () => setRole(null)

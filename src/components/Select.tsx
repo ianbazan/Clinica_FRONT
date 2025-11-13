@@ -1,8 +1,8 @@
-import React from 'react'
+import type { SelectHTMLAttributes, ReactNode } from 'react'
 import './Select.css'
 
-type Props = React.SelectHTMLAttributes<HTMLSelectElement> & {
-  children: React.ReactNode
+type Props = SelectHTMLAttributes<HTMLSelectElement> & {
+  children: ReactNode
   className?: string
 }
 
