@@ -5,6 +5,35 @@
   max-width: 1000px;
   background: var(--card-bg);
 }
+
+/* Layout for calendar with optional note aside */
+.calendar-layout {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  position: relative; /* parent for absolute note */
+}
+.calendar-layout .calendar-main {
+  flex: 1 1 auto;
+}
+.note-floating {
+  position: absolute;
+  top: 0;
+  left: calc(100% + 16px); /* place it outside to the right of the calendar container */
+  width: 260px;
+  background: var(--note-bg);
+  border: 1px solid rgba(16,24,40,0.04);
+  padding: 12px;
+  border-radius: 8px;
+  color: var(--text);
+  box-shadow: 0 8px 20px rgba(2,6,23,0.06);
+}
+
+/* Responsive: stack vertically on small screens */
+@media (max-width: 1000px) {
+  .calendar-layout { flex-direction: column; }
+  .note-floating { position: static; width: 100%; box-shadow: none; margin-top: 8px; }
+}
 .calendar-header {
   display: flex;
   align-items: center;

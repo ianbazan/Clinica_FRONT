@@ -1,0 +1,48 @@
+.custom-select {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.custom-select select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  padding: 8px 36px 8px 12px;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 8px;
+  background: var(--card-bg, #fff);
+  color: var(--text, #111);
+  font-size: 14px;
+  min-width: 64px;
+}
+
+.custom-select::after {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid rgba(0,0,0,0.6);
+  transform: translateY(-50%);
+}
+
+.custom-select select:focus {
+  outline: none;
+  border-color: var(--primary, #1976d2);
+  box-shadow: 0 6px 18px rgba(25,118,210,0.08);
+}
+
+/* helper to make the select fill available width when used in flex layouts */
+.custom-select.full {
+  display: block;
+  width: 100%;
+}
+
+.custom-select.full select {
+  width: 100%;
+}

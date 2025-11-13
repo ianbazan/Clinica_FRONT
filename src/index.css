@@ -11,6 +11,7 @@
   --accent: #10b981; /* green-500 */
   --muted: #6b7280; /* gray-500 */
   --card-bg: #f8fafc;
+  --note-bg: #d1fae5; /* pastel green for info note */
   --appt-notes: #374151;
 
   font-family: var(--font-family);
@@ -39,12 +40,95 @@ a:hover {
 body {
   margin: 0;
   display: flex;
-  place-items: center;
+  place-items: stretch;
   min-width: 320px;
   min-height: 100vh;
   background-color: var(--bg);
   color: var(--text);
+  flex-direction: column;
 }
+
+/* App layout classes */
+.app-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200000; /* very high so it covers header */
+}
+.modal-content {
+  background: #fff;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 700px;
+  max-height: 90%;
+  overflow: auto;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(2,6,23,0.12);
+}
+  background: var(--bg);
+  border-bottom: 1px solid rgba(16,24,40,0.04);
+}
+.app-nav {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.app-nav-left {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.app-nav-right {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.app-main {
+  flex: 1 1 auto;
+  padding: 16px;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+.app-footer {
+  padding: 12px;
+  text-align: center;
+  border-top: 1px solid rgba(16,24,40,0.04);
+  background: var(--bg);
+  color: var(--muted);
+}
+
+.app-nav a {
+  color: var(--primary-600);
+  text-decoration: none;
+  font-weight: 600;
+}
+.btn {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.btn:hover { opacity: 0.95 }
 
 h1 {
   font-size: 3.2em;
