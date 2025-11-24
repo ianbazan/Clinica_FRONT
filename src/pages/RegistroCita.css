@@ -1,65 +1,126 @@
-.registro-form {
-  background: var(--card-bg);
-  padding: 16px;
-  border-radius: 10px;
-  box-shadow: 0 6px 18px rgba(15,23,42,0.04);
-  max-width: 760px;
-}
-
+/* ————————————————————————————————
+   CONTENEDOR GENERAL
+—————————————————————————————— */
 .registro-page {
   display: flex;
-  justify-content: center; /* center horizontally */
-  padding-top: 8px;
+  justify-content: center;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  background: var(--bg);
 }
 
-.registro-form .form-row {
+/* ————————————————————————————————
+   CARD PRINCIPAL DEL FORMULARIO
+—————————————————————————————— */
+.registro-form {
+  background: var(--card-bg);
+  padding: 28px;
+  border-radius: 14px;
+  max-width: 760px;
+  width: 100%;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+  border: 1px solid rgba(15, 23, 42, 0.05);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.registro-form:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.10);
+}
+
+/* ————————————————————————————————
+   FILAS DEL FORMULARIO
+—————————————————————————————— */
+.form-row {
   display: flex;
-  gap: 12px;
+  gap: 18px;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 18px;
 }
 
+/* ————————————————————————————————
+   LABELS
+—————————————————————————————— */
 .registro-form label {
-  min-width: 130px;
+  min-width: 160px;
   font-weight: 600;
-  color: var(--muted);
+  color: var(--text);
+  opacity: 0.75;
+  font-size: 15px;
+  letter-spacing: 0.3px;
 }
 
+/* ————————————————————————————————
+   INPUTS / SELECTS / TEXTAREA
+—————————————————————————————— */
 .registro-form input,
 .registro-form textarea,
 .registro-form select {
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(2,6,23,0.06);
-  background: #fff;
   flex: 1;
+  padding: 12px 14px;
+  background: #ffffff;
+  border-radius: 10px;
+  border: 1px solid rgba(2, 6, 23, 0.12);
+  font-size: 15px;
   font-family: inherit;
-  font-size: 14px;
+  transition: border 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
-.registro-form textarea { min-height: 90px; resize: vertical }
+textarea {
+  min-height: 110px;
+  resize: vertical;
+}
 
+/* Estados bonitos */
+.registro-form input:hover,
+.registro-form textarea:hover,
+.registro-form select:hover {
+  background: #f9fafb;
+}
+
+/* Focus con glamour */
 .registro-form input:focus,
 .registro-form textarea:focus,
 .registro-form select:focus {
   outline: none;
-  box-shadow: 0 8px 24px rgba(37,99,235,0.06);
-  border-color: var(--primary-600);
+  border-color: var(--primary);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.12);
+  background: #fff;
 }
 
+/* ————————————————————————————————
+   BOTONES DE ACCIÓN
+—————————————————————————————— */
 .registro-actions {
   display: flex;
-  gap: 8px;
   justify-content: flex-end;
-  margin-top: 8px;
+  gap: 12px;
+  margin-top: 22px;
 }
 
 .registro-actions .btn {
-  padding: 10px 14px;
-  border-radius: 8px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+.registro-actions .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.15);
+}
+
+/* ————————————————————————————————
+   RESPONSIVE
+—————————————————————————————— */
 @media (max-width: 640px) {
-  .registro-form .form-row { flex-direction: column; align-items: stretch }
-  .registro-form label { min-width: auto }
+  .form-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .registro-form label {
+    min-width: unset;
+  }
 }

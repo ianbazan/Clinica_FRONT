@@ -1,148 +1,228 @@
+/* ——————————————————————————————————————
+   CONTENEDOR PRINCIPAL DEL CALENDARIO
+—————————————————————————————————————— */
 .calendar-root {
-  border: 1px solid rgba(16,24,40,0.06);
-  border-radius: 6px;
-  padding: 12px;
+  border: 1px solid rgba(16, 24, 40, 0.05);
+  border-radius: 14px;
+  padding: 20px;
   max-width: 1000px;
   background: var(--card-bg);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  transition: box-shadow 0.25s ease, transform 0.2s ease;
 }
 
-/* Layout for calendar with optional note aside */
+.calendar-root:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.08);
+}
+
+/* ——————————————————————————————————————
+   LAYOUT DEL CALENDARIO Y NOTA LATERAL
+—————————————————————————————————————— */
 .calendar-layout {
   display: flex;
-  gap: 16px;
+  gap: 20px;
   align-items: flex-start;
-  position: relative; /* parent for absolute note */
+  position: relative;
 }
+
 .calendar-layout .calendar-main {
-  flex: 1 1 auto;
+  flex: 1;
 }
+
+/* Nota flotante */
 .note-floating {
   position: absolute;
   top: 0;
-  left: calc(100% + 16px); /* place it outside to the right of the calendar container */
-  width: 260px;
+  left: calc(90% + 1px);
+  width: 200px;
   background: var(--note-bg);
-  border: 1px solid rgba(16,24,40,0.04);
-  padding: 12px;
-  border-radius: 8px;
+  border: 1px solid rgba(16, 24, 40, 0.08);
+  padding: 10px;
+  border-radius: 12px;
   color: var(--text);
-  box-shadow: 0 8px 20px rgba(2,6,23,0.06);
+  box-shadow: 0 10px 28px rgba(2, 6, 23, 0.08);
+  line-height: 1.4;
 }
 
-/* Responsive: stack vertically on small screens */
+/* Responsive */
 @media (max-width: 1000px) {
   .calendar-layout { flex-direction: column; }
-  .note-floating { position: static; width: 100%; box-shadow: none; margin-top: 8px; }
+  .note-floating {
+    position: static;
+    width: 100%;
+    margin-top: 12px;
+    box-shadow: none;
+  }
 }
+
+/* ——————————————————————————————————————
+   HEADER DEL CALENDARIO
+—————————————————————————————————————— */
 .calendar-header {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  margin-bottom: 8px;
+  gap: 14px;
+  margin-bottom: 14px;
 }
+
 .calendar-title {
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.3px;
+  color: var(--primary-600);
 }
+
+/* ——————————————————————————————————————
+   SEMANAS
+—————————————————————————————————————— */
 .calendar-weeknames {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   text-align: center;
   font-weight: 600;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(16,24,40,0.06);
+  padding: 10px 0;
   color: var(--muted);
+  border-bottom: 1px solid rgba(16, 24, 40, 0.08);
+  letter-spacing: 0.3px;
 }
+
+/* ——————————————————————————————————————
+   GRID PRINCIPAL
+—————————————————————————————————————— */
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   grid-auto-rows: 120px;
-  gap: 4px;
+  gap: 6px;
 }
+
+/* ——————————————————————————————————————
+   CELDAS DEL DÍA
+—————————————————————————————————————— */
 .day-cell {
-  border: 1px solid rgba(16,24,40,0.04);
-  padding: 6px;
-  box-sizing: border-box;
+  border: 1px solid rgba(16, 24, 40, 0.06);
+  padding: 8px;
   background: #ffffff;
-  cursor: default;
+  border-radius: 10px;
+  box-sizing: border-box;
+  cursor: pointer;
   display: flex;
   flex-direction: column;
+  transition: background 0.2s ease, box-shadow 0.25s ease;
 }
+
+.day-cell:hover {
+  background: #f8fafc;
+  box-shadow: inset 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
 .day-cell.muted {
-  background: #fbfbfd;
+  background: #f4f4f6;
   color: var(--muted);
 }
+
 .day-number {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
   margin-bottom: 6px;
+  opacity: 0.85;
 }
+
+/* ——————————————————————————————————————
+   LISTA DE CITAS DEL DÍA
+—————————————————————————————————————— */
 .appointments {
   overflow: hidden;
 }
+
 .appt {
   background: var(--card-bg);
-  border-left: 3px solid var(--accent);
+  border-left: 4px solid var(--accent);
   border-radius: 6px;
   padding: 6px 8px;
   margin-bottom: 6px;
   font-size: 13px;
-  line-height: 1.1;
+  line-height: 1.2;
   color: var(--text);
+  box-shadow: 0 2px 6px rgba(2, 6, 23, 0.05);
+  transition: transform 0.2s ease;
 }
+
+.appt:hover {
+  transform: translateX(2px);
+}
+
 .appt-time {
   font-weight: 700;
   color: var(--primary-600);
-  margin-right: 6px;
 }
+
 .appt-client {
   color: var(--text);
 }
+
 .appt-notes {
-  color: var(--appt-notes); /* gray-700 for notes */
+  color: var(--appt-notes);
   font-size: 12px;
-  margin-top: 2px;
+  margin-top: 4px;
+  opacity: 0.85;
 }
+
 .more {
   font-size: 12px;
   color: #475569;
+  font-style: italic;
 }
 
-/* Modal small tweaks (in case used on this page) */
+/* ——————————————————————————————————————
+   MODAL
+—————————————————————————————————————— */
 .modal-content {
-  padding: 12px;
+  padding: 18px;
+  border-radius: 12px !important;
   color: #0f172a;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.15);
 }
 
 .modal-content strong {
-  color: #0f172a; /* darker color for times in modal */
+  color: #0f172a;
 }
+
 .modal-content em {
   color: #111827;
 }
+
 .modal-content div {
   color: #374151;
 }
 
-/* Modal header and button styles */
 .modal-header h3 {
-  color: #0f172a;
+  color: var(--primary-600);
+  font-weight: 700;
+  letter-spacing: 0.4px;
 }
+
 .modal-close {
   background: transparent;
-  border: 1px solid rgba(16,24,40,0.06);
-  padding: 6px 10px;
-  border-radius: 6px;
+  border: 1px solid rgba(16, 24, 40, 0.06);
+  padding: 6px 12px;
+  border-radius: 8px;
   color: var(--text);
   cursor: pointer;
+  transition: background 0.2s ease;
 }
+
 .modal-close:hover {
-  background: rgba(37,99,235,0.06);
+  background: rgba(37, 99, 235, 0.07);
   color: var(--primary-600);
 }
+
 .modal-body {
-  color: #111827; /* apply darker text in modal body */
+  color: #111827;
 }
+
 .modal-body ul li {
   color: #111827;
 }

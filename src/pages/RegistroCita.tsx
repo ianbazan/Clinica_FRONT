@@ -3,7 +3,7 @@ import './RegistroCita.css'
 export default function RegistroCita() {
   return (
     <div>
-      <h2>Registro de cita</h2>
+      <h2>Registro de Cita</h2>
       <p>Esta pantalla permite a la Operadora y al Admin registrar una cita.</p>
       <div className="registro-page">
         <form className="registro-form" onSubmit={(e) => e.preventDefault()}>
