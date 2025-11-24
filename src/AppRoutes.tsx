@@ -36,7 +36,7 @@ const Nav = () => {
 };
 
 export default function AppRoutes() {
-  const [activeImage, setActiveImage] = useState(null);
+  const [activeImage, setActiveImage] = useState<string | null>(null);
 
   const homeBlocks = [
     { title: "Tipos de Autocuidado", url: "https://i.pinimg.com/736x/fa/41/66/fa4166b28395fae3f8589b2f24cc1812.jpg" },
