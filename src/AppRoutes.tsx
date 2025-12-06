@@ -3,6 +3,7 @@ import { useState } from "react";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import ProtectedRoute from './routes/ProtectedRoute';
 import RegistroCita from './pages/RegistroCita';
+import RegistroPaciente from './pages/RegistroPaciente';
 import HistorialClinico from './pages/HistorialClinico';
 import GestorEmpleados from './pages/GestorEmpleados';
 import GestionTerapias from './pages/GestionTerapias';
@@ -17,7 +18,8 @@ const Nav = () => {
       <nav className="app-nav">
         <div className="app-nav-left">
           <Link to="/">Inicio</Link>
-          <Link to="/registro">Registro cita </Link>
+          <Link to="/registro-paciente">Registro paciente</Link>
+          <Link to="/registro">Registro cita</Link>
           <Link to="/historial">Historial clínico</Link>
           <Link to="/empleados">Gestor empleados</Link>
           <Link to="/terapias">Gestión terapias</Link>
@@ -27,7 +29,7 @@ const Nav = () => {
           <span>Rol: <strong>{role ?? 'ninguno'}</strong></span>
           <button className="btn" onClick={() => loginAs('Admin')}>Admin</button>
           <button className="btn" onClick={() => loginAs('Psicologo')}>Psicologo</button>
-          <button className="btn" onClick={() => loginAs('Operadora')}>Operadora</button>
+          <button className="btn" onClick={() => loginAs('Operadora')}>Recepcionista</button>
           <button className="btn" onClick={() => logout()}>Salir</button>
         </div>
       </nav>
@@ -105,6 +107,7 @@ export default function AppRoutes() {
                 }
               />
 
+              <Route path="/registro-paciente" element={<ProtectedRoute allowedRoles={["Admin","Operadora"]}><RegistroPaciente /></ProtectedRoute>} />
               <Route path="/registro" element={<ProtectedRoute allowedRoles={["Admin","Operadora"]}><RegistroCita /></ProtectedRoute>} />
               <Route path="/historial" element={<ProtectedRoute allowedRoles={["Admin","Psicologo"]}><HistorialClinico /></ProtectedRoute>} />
               <Route path="/empleados" element={<ProtectedRoute allowedRoles={["Admin"]}><GestorEmpleados /></ProtectedRoute>} />
