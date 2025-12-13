@@ -1,6 +1,14 @@
-import { useMemo, useState } from 'react'
-import { therapies } from '../data/mockTherapies'
-import Select from '../components/Select'
+import { useMemo, useState } from 'react';
+import { therapies } from '../data/mockTherapies';
+import {
+  Box,
+  Button,
+  MenuItem,
+  Paper,
+  Select,
+  TextField,
+  Typography
+} from '@mui/material';
 
 export default function GestionTerapias() {
   const [query, setQuery] = useState('')
@@ -19,42 +27,55 @@ export default function GestionTerapias() {
   const goto = (n: number) => setPage(Math.max(1, Math.min(totalPages, n)))
 
   return (
-    <div>
-      <h2>Gestión de terapias</h2>
-      <p>Accesible por Admin y Operadora. Administrar tipos de terapia, sesiones, etc.</p>
+    <Box>
+      <Typography variant="h4" gutterBottom>Gestión de terapias</Typography>
+      <Typography variant="body1" gutterBottom>Accesible por Admin y Operadora. Administrar tipos de terapia, sesiones, etc.</Typography>
 
-      <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 8, marginBottom: 8 }}>
-        <input placeholder="Buscar terapias..." value={query} onChange={(e) => { setQuery(e.target.value); setPage(1) }} style={{ padding: 8, flex: 1 }} />
-        <Select value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1) }}>
-          <option value={5}>5</option>
-          <option value={10}>10</option>
-          <option value={20}>20</option>
+      <Box display="flex" gap={2} alignItems="center" mt={1} mb={1}>
+        <TextField
+          placeholder="Buscar terapias..."
+          value={query}
+          onChange={(e) => { setQuery(e.target.value); setPage(1); }}
+          size="small"
+          fullWidth
+        />
+        <Select
+          value={pageSize}
+          onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
+          size="small"
+          sx={{ minWidth: 80 }}
+        >
+          <MenuItem value={5}>5</MenuItem>
+          <MenuItem value={10}>10</MenuItem>
+          <MenuItem value={20}>20</MenuItem>
         </Select>
-      </div>
+      </Box>
 
-      <div style={{ display: 'grid', gap: 12, marginTop: 12 }}>
+      <Box display="grid" gap={2} mt={2}>
         {pageData.map((t) => (
-          <div key={t.id} style={{ padding: 12, border: '1px solid #eee', borderRadius: 8, background: 'white' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <strong>{t.name}</strong>
-              <span>{t.durationMin} min</span>
-            </div>
-            <div style={{ color: '#666', marginTop: 6 }}>{t.description}</div>
-            <div style={{ marginTop: 8 }}><strong>Precio:</strong> {t.price ? `${t.price} CLP` : '—'}</div>
-          </div>
+          <Paper key={t.id} sx={{ p: 2, borderRadius: 2 }} elevation={2}>
+            <Box display="flex" justifyContent="space-between" alignItems="center">
+              <Typography variant="h6">{t.name}</Typography>
+              <Typography variant="body2">{t.durationMin} min</Typography>
+            </Box>
+            <Typography variant="body2" color="text.secondary" mt={1}>{t.description}</Typography>
+            <Box mt={1}>
+              <Typography variant="body2"><strong>Precio:</strong> {t.price ? `${t.price} CLP` : '—'}</Typography>
+            </Box>
+          </Paper>
         ))}
-      </div>
+      </Box>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }}>
-        <div>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
+        <Typography variant="body2">
           Mostrando {Math.min((page - 1) * pageSize + 1, total)} - {Math.min(page * pageSize, total)} de {total}
-        </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <button className="btn" onClick={() => goto(page - 1)} disabled={page <= 1}>Anterior</button>
-          <span>Pagina {page} / {totalPages}</span>
-          <button className="btn" onClick={() => goto(page + 1)} disabled={page >= totalPages}>Siguiente</button>
-        </div>
-      </div>
-    </div>
-  )
+        </Typography>
+        <Box display="flex" gap={1} alignItems="center">
+          <Button variant="contained" onClick={() => goto(page - 1)} disabled={page <= 1}>Anterior</Button>
+          <Typography variant="body2">Pagina {page} / {totalPages}</Typography>
+          <Button variant="contained" onClick={() => goto(page + 1)} disabled={page >= totalPages}>Siguiente</Button>
+        </Box>
+      </Box>
+    </Box>
+  );
 }

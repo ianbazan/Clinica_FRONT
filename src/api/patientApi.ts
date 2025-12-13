@@ -24,10 +24,10 @@ export type PatientDto = {
 
 // Guardian endpoints
 export async function createGuardian(body: GuardianDto): Promise<GuardianDto> {
-  return apiFetch('/guardian', { method: 'POST', body: JSON.stringify(body) })
+  return apiFetch('/api/guardian', { method: 'POST', body: JSON.stringify(body) })
 }
 
 // Patient endpoints
 export async function createPatient(body: PatientDto): Promise<PatientDto> {
-  return apiFetch('/patient', { method: 'POST', body: JSON.stringify(body) })
+  return apiFetch('/api/patient', { method: 'POST', body: JSON.stringify(body) })
 }

@@ -1,6 +1,17 @@
-import { useState } from 'react'
-import './RegistroPaciente.css'
-import { createGuardian, createPatient } from '../api/patientApi'
+import { useState } from 'react';
+import './RegistroPaciente.css';
+import { createGuardian, createPatient } from '../api/patientApi';
+import {
+  Box,
+  Button,
+  MenuItem,
+  Paper,
+  Select,
+  TextField,
+  Typography,
+  FormControl,
+  InputLabel,
+} from '@mui/material';
 
 export default function RegistroPaciente() {
   const [guardianData, setGuardianData] = useState({
@@ -74,9 +85,9 @@ export default function RegistroPaciente() {
   }
 
   return (
-    <div>
+    <Box>
       {showModal && (
-        <div style={{
+        <Box sx={{
           position: 'fixed',
           top: 0,
           left: 0,
@@ -88,223 +99,180 @@ export default function RegistroPaciente() {
           justifyContent: 'center',
           zIndex: 9999
         }}>
-          <div style={{
-            background: '#fff',
-            padding: 32,
-            borderRadius: 12,
-            boxShadow: '0 2px 16px rgba(0,0,0,0.15)',
+          <Paper sx={{
+            p: 4,
+            borderRadius: 3,
+            boxShadow: 3,
             minWidth: 320,
             textAlign: 'center'
           }}>
-            <h3 style={{marginBottom: 16}}>✅ Registro exitoso</h3>
-            <p><strong>ID del nuevo paciente:</strong></p>
-            <div style={{
+            <Typography variant="h5" gutterBottom>✅ Registro exitoso</Typography>
+            <Typography variant="body1"><strong>ID del nuevo paciente:</strong></Typography>
+            <Box sx={{
               fontSize: 28,
               fontWeight: 'bold',
               color: '#1976d2',
-              margin: '12px 0 24px'
-            }}>{newPatientId}</div>
-            <button className="btn" onClick={() => setShowModal(false)}>
+              my: 2
+            }}>{newPatientId}</Box>
+            <Button variant="contained" onClick={() => setShowModal(false)}>
               Cerrar
-            </button>
-          </div>
-        </div>
+            </Button>
+          </Paper>
+        </Box>
       )}
-      <h2>Registrar Nuevo Paciente</h2>
-      <p>Esta pantalla permite a la Recepcionista registrar un nuevo paciente y su tutor.</p>
-      
+      <Typography variant="h4" gutterBottom>Registrar Nuevo Paciente</Typography>
+      <Typography variant="body1" gutterBottom>Esta pantalla permite a la Recepcionista registrar un nuevo paciente y su tutor.</Typography>
+
       {error && (
-        <div style={{ 
-          background: '#fee', 
-          border: '1px solid #fcc', 
-          padding: 12, 
-          borderRadius: 8, 
-          marginBottom: 16,
+        <Box sx={{
+          background: '#fee',
+          border: '1px solid #fcc',
+          p: 1.5,
+          borderRadius: 2,
+          mb: 2,
           maxWidth: 900,
-          margin: '0 auto 16px'
+          mx: 'auto'
         }}>
           ❌ {error}
-        </div>
+        </Box>
       )}
 
-      <div className="registro-page">
+      <Box className="registro-page">
         <form className="registro-form" onSubmit={handleSubmit}>
-          
           {/* SECCIÓN TUTOR/APODERADO */}
-          <fieldset className="form-section" disabled={loading}>
+          <fieldset className="form-section" disabled={loading} style={{ border: 0, marginBottom: 24 }}>
             <legend>Datos del Tutor/Apoderado</legend>
-            
-            <div className="form-row">
-              <label htmlFor="tutor-nombre">Nombre:</label>
-              <input
+            <Box display="grid" gap={2}>
+              <TextField
                 id="tutor-nombre"
-                name="tutor-nombre"
-                placeholder="Nombre del tutor"
+                label="Nombre del tutor"
                 value={guardianData.nombre}
                 onChange={(e) => setGuardianData({ ...guardianData, nombre: e.target.value })}
                 required
               />
-            </div>
-
-            <div className="form-row">
-              <label htmlFor="tutor-apellido">Apellido:</label>
-              <input
+              <TextField
                 id="tutor-apellido"
-                name="tutor-apellido"
-                placeholder="Apellido del tutor"
+                label="Apellido del tutor"
                 value={guardianData.apellido}
                 onChange={(e) => setGuardianData({ ...guardianData, apellido: e.target.value })}
                 required
               />
-            </div>
-
-            <div className="form-row">
-              <label htmlFor="tutor-dni">DNI:</label>
-              <input
+              <TextField
                 id="tutor-dni"
-                name="tutor-dni"
-                placeholder="DNI (8 dígitos)"
-                maxLength={8}
+                label="DNI (8 dígitos)"
+                inputProps={{ maxLength: 8 }}
                 value={guardianData.dni}
                 onChange={(e) => setGuardianData({ ...guardianData, dni: e.target.value })}
                 required
               />
-            </div>
-
-            <div className="form-row">
-              <label htmlFor="tutor-telefono">Teléfono:</label>
-              <input
+              <TextField
                 id="tutor-telefono"
-                name="tutor-telefono"
-                placeholder="Teléfono (9 dígitos)"
-                maxLength={9}
+                label="Teléfono (9 dígitos)"
+                inputProps={{ maxLength: 9 }}
                 value={guardianData.telefono}
                 onChange={(e) => setGuardianData({ ...guardianData, telefono: e.target.value })}
                 required
               />
-            </div>
-
-            <div className="form-row">
-              <label htmlFor="tutor-direccion">Dirección:</label>
-              <input
+              <TextField
                 id="tutor-direccion"
-                name="tutor-direccion"
-                placeholder="Dirección (opcional)"
+                label="Dirección (opcional)"
                 value={guardianData.direccion}
                 onChange={(e) => setGuardianData({ ...guardianData, direccion: e.target.value })}
               />
-            </div>
-              <div className="form-row">
-                <label htmlFor="tutor-tipo-relacion">Tipo de relación:</label>
-                <select
+              <FormControl required>
+                <InputLabel id="tutor-tipo-relacion-label">Tipo de relación</InputLabel>
+                <Select
+                  labelId="tutor-tipo-relacion-label"
                   id="tutor-tipo-relacion"
-                  name="tutor-tipo-relacion"
                   value={guardianData.tipoRelacionId}
+                  label="Tipo de relación"
                   onChange={(e) => setGuardianData({ ...guardianData, tipoRelacionId: Number(e.target.value) })}
-                  required
                 >
-                  <option value={1}>Madre</option>
-                  <option value={2}>Padre</option>
-                  <option value={3}>Tutor legal</option>
-                  <option value={4}>Abuela</option>
-                </select>
-              </div>
+                  <MenuItem value={1}>Madre</MenuItem>
+                  <MenuItem value={2}>Padre</MenuItem>
+                  <MenuItem value={3}>Tutor legal</MenuItem>
+                  <MenuItem value={4}>Abuela</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
           </fieldset>
 
           {/* SECCIÓN PACIENTE */}
-          <fieldset className="form-section" disabled={loading}>
+          <fieldset className="form-section" disabled={loading} style={{ border: 0, marginBottom: 24 }}>
             <legend>Datos del Paciente</legend>
-            
-            <div className="form-row">
-              <label htmlFor="paciente-nombre">Nombre:</label>
-              <input
+            <Box display="grid" gap={2}>
+              <TextField
                 id="paciente-nombre"
-                name="paciente-nombre"
-                placeholder="Nombre del paciente"
+                label="Nombre del paciente"
                 value={patientData.nombre}
                 onChange={(e) => setPatientData({ ...patientData, nombre: e.target.value })}
                 required
               />
-            </div>
-
-            <div className="form-row">
-              <label htmlFor="paciente-apellido">Apellido:</label>
-              <input
+              <TextField
                 id="paciente-apellido"
-                name="paciente-apellido"
-                placeholder="Apellido del paciente"
+                label="Apellido del paciente"
                 value={patientData.apellido}
                 onChange={(e) => setPatientData({ ...patientData, apellido: e.target.value })}
                 required
               />
-            </div>
-
-            <div className="form-row">
-              <label htmlFor="paciente-dni">DNI:</label>
-              <input
+              <TextField
                 id="paciente-dni"
-                name="paciente-dni"
-                placeholder="DNI (8 dígitos)"
-                maxLength={8}
+                label="DNI (8 dígitos)"
+                inputProps={{ maxLength: 8 }}
                 value={patientData.dni}
                 onChange={(e) => setPatientData({ ...patientData, dni: e.target.value })}
                 required
               />
-            </div>
-
-            <div className="form-row">
-              <label htmlFor="paciente-genero">Género:</label>
-              <select
-                id="paciente-genero"
-                name="paciente-genero"
-                value={patientData.genero}
-                onChange={(e) => setPatientData({ ...patientData, genero: e.target.value })}
-                required
-              >
-                <option value="">Seleccione...</option>
-                <option value="true">Masculino</option>
-                <option value="false">Femenino</option>
-              </select>
-            </div>
-
-            <div className="form-row">
-              <label htmlFor="paciente-fecha-nacimiento">Fecha de Nacimiento:</label>
-              <input
+              <FormControl required>
+                <InputLabel id="paciente-genero-label">Género</InputLabel>
+                <Select
+                  labelId="paciente-genero-label"
+                  id="paciente-genero"
+                  value={patientData.genero}
+                  label="Género"
+                  onChange={(e) => setPatientData({ ...patientData, genero: e.target.value })}
+                >
+                  <MenuItem value="">Seleccione...</MenuItem>
+                  <MenuItem value="true">Masculino</MenuItem>
+                  <MenuItem value="false">Femenino</MenuItem>
+                </Select>
+              </FormControl>
+              <TextField
                 id="paciente-fecha-nacimiento"
-                name="paciente-fecha-nacimiento"
+                label="Fecha de Nacimiento"
                 type="date"
+                InputLabelProps={{ shrink: true }}
                 value={patientData.fechaNacimiento}
                 onChange={(e) => setPatientData({ ...patientData, fechaNacimiento: e.target.value })}
                 required
               />
-            </div>
-
-            <div className="form-row">
-              <label htmlFor="paciente-nivel-autismo">Nivel de Autismo:</label>
-              <select
-                id="paciente-nivel-autismo"
-                name="paciente-nivel-autismo"
-                value={patientData.nivelAutismo}
-                onChange={(e) => setPatientData({ ...patientData, nivelAutismo: e.target.value })}
-                required
-              >
-                <option value="">Seleccione...</option>
-                <option value="Leve">Leve</option>
-                <option value="Moderado">Moderado</option>
-                <option value="Grave">Grave</option>
-              </select>
-            </div>
+              <FormControl required>
+                <InputLabel id="paciente-nivel-autismo-label">Nivel de Autismo</InputLabel>
+                <Select
+                  labelId="paciente-nivel-autismo-label"
+                  id="paciente-nivel-autismo"
+                  value={patientData.nivelAutismo}
+                  label="Nivel de Autismo"
+                  onChange={(e) => setPatientData({ ...patientData, nivelAutismo: e.target.value })}
+                >
+                  <MenuItem value="">Seleccione...</MenuItem>
+                  <MenuItem value="Leve">Leve</MenuItem>
+                  <MenuItem value="Moderado">Moderado</MenuItem>
+                  <MenuItem value="Grave">Grave</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
           </fieldset>
 
           {/* BOTONES */}
-          <div className="registro-actions">
-            <button type="button" className="btn btn-secondary" disabled={loading}>Cancelar</button>
-            <button type="submit" className="btn" disabled={loading}>
+          <Box className="registro-actions" display="flex" gap={2}>
+            <Button type="button" variant="outlined" color="secondary" disabled={loading}>Cancelar</Button>
+            <Button type="submit" variant="contained" disabled={loading}>
               {loading ? 'Registrando...' : 'Registrar Paciente'}
-            </button>
-          </div>
+            </Button>
+          </Box>
         </form>
-      </div>
-    </div>
-  )
+      </Box>
+    </Box>
+  );
 }

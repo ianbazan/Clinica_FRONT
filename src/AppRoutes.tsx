@@ -6,6 +6,7 @@ import RegistroCita from './pages/RegistroCita';
 import RegistroPaciente from './pages/RegistroPaciente';
 import HistorialClinico from './pages/HistorialClinico';
 import GestorEmpleados from './pages/GestorEmpleados';
+import ListadoCitas from './pages/ListadoCitas';
 import GestionTerapias from './pages/GestionTerapias';
 import Calendario from './pages/Calendario';
 import { AuthProvider, useAuth } from './auth/mockAuth';
@@ -24,6 +25,7 @@ const Nav = () => {
           <Link to="/empleados">Gestor empleados</Link>
           <Link to="/terapias">Gestión terapias</Link>
           <Link to="/calendario">Calendario</Link>
+          <Link to="/citas">Listado Citas</Link>
         </div>
         <div className="app-nav-right">
           <span>Rol: <strong>{role ?? 'ninguno'}</strong></span>
@@ -113,6 +115,11 @@ export default function AppRoutes() {
               <Route path="/empleados" element={<ProtectedRoute allowedRoles={["Admin"]}><GestorEmpleados /></ProtectedRoute>} />
               <Route path="/terapias" element={<ProtectedRoute allowedRoles={["Admin","Operadora"]}><GestionTerapias /></ProtectedRoute>} />
               <Route path="/calendario" element={<ProtectedRoute allowedRoles={["Admin","Psicologo","Operadora"]}><Calendario /></ProtectedRoute>} />
+              <Route path="/citas" element={
+                <ProtectedRoute allowedRoles={["Recepcionista", "Operadora"]}>
+                  <ListadoCitas />
+                </ProtectedRoute>
+              } />
             </Routes>
           </main>
           <footer className="app-footer">Clínica — © {new Date().getFullYear()}</footer>

@@ -1,95 +1,223 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import dayjs from 'dayjs'
-import CalendarGrid from '../components/CalendarGrid'
-import { appointments as mockAppointments } from '../data/mockAppointments'
-import Modal from '../components/Modal'
-import NoteBox from '../components/NoteBox'
-import Select from '../components/Select'
+import CalendarGrid from '../components/CalendarGrid';
+import Modal from '../components/Modal';
+import NoteBox from '../components/NoteBox';
+import { Box, MenuItem, Select, Typography, ToggleButton, ToggleButtonGroup, Paper, Button } from '@mui/material';
 import './Calendario.css'
 
 export default function Calendario() {
-  const [month, setMonth] = useState(() => dayjs())
-  const clients = useMemo(() => ['ALL', ...Array.from(new Set(mockAppointments.map((a) => a.client)))], [])
-  const [client, setClient] = useState<string>('ALL')
+  const [month, setMonth] = useState(() => dayjs());
+  const [client, setClient] = useState<string>('ALL');
+  const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [view, setView] = useState<'month' | 'week'>('month');
+  const [appointments, setAppointments] = useState([]);
 
-  const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null)
-  const [modalOpen, setModalOpen] = useState(false)
 
-  const onPrev = () => setMonth((m) => m.subtract(1, 'month'))
-  const onNext = () => setMonth((m) => m.add(1, 'month'))
+  // Fetch appointments from backend
+  useEffect(() => {
+    async function fetchAppointments() {
+
+      try {
+        const res = await fetch(`api/appointments/calendar?patient=${client}&month=${month.month() + 1}&year=${month.year()}`);
+        if (res.status === 204) {
+          setAppointments([]);
+        } else if (res.ok) {
+          const data = await res.json();
+          setAppointments(data);
+        } else {
+          const err = await res.json().catch(() => ({}));
+
+        }
+      } catch (e: any) {
+
+      } finally {
+
+      }
+    }
+    fetchAppointments();
+  }, [client, month]);
+
+  // Obtener lista de pacientes únicos para el filtro
+  const clients = useMemo(() => {
+    const set = new Set<string>();
+    appointments.forEach((a: any) => set.add(a.patientName));
+    return ['ALL', ...Array.from(set)];
+  }, [appointments]);
+
+  const onPrev = () => {
+    if (view === 'month') setMonth((m) => m.subtract(1, 'month'));
+    else setMonth((m) => m.subtract(1, 'week'));
+  };
+  const onNext = () => {
+    if (view === 'month') setMonth((m) => m.add(1, 'month'));
+    else setMonth((m) => m.add(1, 'week'));
+  };
   const onSelectDate = (d: dayjs.Dayjs) => {
-    setSelectedDate(d)
-    setModalOpen(true)
-  }
+    setSelectedDate(d);
+    setModalOpen(true);
+  };
 
   // month/year selectors
-  const monthNames = Array.from({ length: 12 }).map((_, i) => dayjs().month(i).format('MMMM'))
-  const currentYear = dayjs().year()
-  const yearRange = Array.from({ length: 21 }).map((_, i) => currentYear - 10 + i) // -10..+10
-  const onChangeMonth = (mIdx: number) => setMonth((m) => m.year(m.year()).month(mIdx).startOf('month'))
-  const onChangeYear = (y: number) => setMonth((m) => m.year(y).startOf('month'))
+  const monthNames = Array.from({ length: 12 }).map((_, i) => dayjs().month(i).format('MMMM'));
+  const currentYear = dayjs().year();
+  const yearRange = Array.from({ length: 21 }).map((_, i) => currentYear - 10 + i); // -10..+10
+  const onChangeMonth = (mIdx: number) => setMonth((m) => m.year(m.year()).month(mIdx).startOf('month'));
+  const onChangeYear = (y: number) => setMonth((m) => m.year(y).startOf('month'));
 
+  // Semana actual (para vista semanal)
+  const weekStart = month.startOf('week');
+  const weekDays = Array.from({ length: 7 }).map((_, i) => weekStart.add(i, 'day'));
+  const hours = Array.from({ length: 12 }).map((_, i) => 8 + i); // 8:00 a 19:00
+
+  // Citas de la semana y cliente
+  const weekAppointments = appointments.filter((a: any) => {
+    const d = dayjs(a.scheduledDate);
+    return d.isAfter(weekStart.subtract(1, 'day')) && d.isBefore(weekStart.add(7, 'day')) && (client === 'ALL' || a.patientName === client);
+  });
+
+  // Citas del día seleccionado
   const appointmentsForSelected = selectedDate
-    ? mockAppointments.filter((a) => dayjs(a.date).format('YYYY-MM-DD') === selectedDate.format('YYYY-MM-DD') && (client === 'ALL' || a.client === client))
-    : []
+    ? appointments.filter((a: any) => dayjs(a.scheduledDate).format('YYYY-MM-DD') === selectedDate.format('YYYY-MM-DD') && (client === 'ALL' || a.patientName === client))
+    : [];
+
+  // Agrupar citas por día para la vista mensual
+
+
+  // Colores por estado
+  const statusColor = (status: string) => {
+    if (!status) return '#bdbdbd';
+    if (status.toLowerCase().includes('pend')) return '#ffe066'; // amarillo
+    if (status.toLowerCase().includes('conf')) return '#81c784'; // verde
+    if (status.toLowerCase().includes('cancel')) return '#e57373'; // rojo
+    return '#90caf9'; // azul claro por defecto
+  };
 
   return (
     <div>
-      <h2>Calendario</h2>
-      <div style={{ marginBottom: 12, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-        <label>
-          Cliente:{' '}
-          <Select value={client} onChange={(e) => setClient(e.target.value)}>
+      <Typography variant="h4" gutterBottom>Calendario</Typography>
+      <Box mb={1.5} display="flex" gap={2} alignItems="center" flexWrap="wrap">
+        <Box display="flex" alignItems="center" gap={1}>
+          <Typography variant="body2">Cliente:</Typography>
+          <Select
+            value={client}
+            onChange={(e) => setClient(e.target.value)}
+            size="small"
+            sx={{ minWidth: 120 }}
+          >
             {clients.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
+              <MenuItem key={c} value={c}>{c}</MenuItem>
             ))}
           </Select>
-        </label>
-
-        <label>
-          Mes:{' '}
-          <Select value={month.month()} onChange={(e) => onChangeMonth(Number(e.target.value))}>
+        </Box>
+        <Box display="flex" alignItems="center" gap={1}>
+          <Typography variant="body2">Mes:</Typography>
+          <Select
+            value={month.month()}
+            onChange={(e) => onChangeMonth(Number(e.target.value))}
+            size="small"
+            sx={{ minWidth: 120 }}
+          >
             {monthNames.map((name, i) => (
-              <option key={i} value={i}>
-                {name}
-              </option>
+              <MenuItem key={i} value={i}>{name}</MenuItem>
             ))}
           </Select>
-        </label>
-
-        <label>
-          Año:{' '}
-          <Select value={month.year()} onChange={(e) => onChangeYear(Number(e.target.value))}>
+        </Box>
+        <Box display="flex" alignItems="center" gap={1}>
+          <Typography variant="body2">Año:</Typography>
+          <Select
+            value={month.year()}
+            onChange={(e) => onChangeYear(Number(e.target.value))}
+            size="small"
+            sx={{ minWidth: 100 }}
+          >
             {yearRange.map((y) => (
-              <option key={y} value={y}>
-                {y}
-              </option>
+              <MenuItem key={y} value={y}>{y}</MenuItem>
             ))}
           </Select>
-        </label>
-      </div>
+        </Box>
+        <ToggleButtonGroup
+          value={view}
+          exclusive
+          onChange={(_, v) => v && setView(v)}
+          size="small"
+          sx={{ ml: 2 }}
+        >
+          <ToggleButton value="month">Mes</ToggleButton>
+          <ToggleButton value="week">Semana</ToggleButton>
+        </ToggleButtonGroup>
+      </Box>
 
-      <div className="calendar-layout">
-        <div className="calendar-main">
-          <CalendarGrid month={month} appointments={mockAppointments} onPrev={onPrev} onNext={onNext} onSelectDate={onSelectDate} filterClient={client} />
+
+      {view === 'month' && (
+        <div className="calendar-root">
+          <div className="calendar-layout">
+            <div className="calendar-main">
+              <CalendarGrid
+                month={month}
+                appointments={appointments}
+                onPrev={onPrev}
+                onNext={onNext}
+                onSelectDate={onSelectDate}
+                filterClient={client}
+              />
+            </div>
+            <NoteBox>
+              <p style={{ margin: 0 }}>Doble clic en una celda para ver las citas de ese día.</p>
+            </NoteBox>
+          </div>
         </div>
-
-        <NoteBox>
-          <p style={{ margin: 0 }}>Doble clic en una celda para ver las citas de ese día.</p>
-        </NoteBox>
-      </div>
+      )}
+      {view === 'week' && (
+        <div className="calendar-root">
+          <Paper sx={{ p: 2, mt: 2, overflowX: 'auto' }}>
+            <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+              <Typography variant="h6">Semana del {weekStart.format('DD MMM YYYY')}</Typography>
+              <Box>
+                <Button variant="outlined" size="small" onClick={onPrev} sx={{ mr: 1 }}>Anterior</Button>
+                <Button variant="outlined" size="small" onClick={onNext}>Siguiente</Button>
+              </Box>
+            </Box>
+            <Box display="grid" gridTemplateColumns={`80px repeat(7, 1fr)`}>
+              <Box></Box>
+              {weekDays.map((d) => (
+                <Box key={d.format('YYYY-MM-DD')} sx={{ textAlign: 'center', fontWeight: 600, color: 'primary.main', mb: 1 }}>
+                  {d.format('ddd DD')}
+                </Box>
+              ))}
+              {hours.map((h) => [
+                <Box key={h} sx={{ borderTop: '1px solid #eee', py: 1, fontSize: 13, color: '#888', textAlign: 'right', pr: 1 }}>{h}:00</Box>,
+                ...weekDays.map((d) => {
+                  const cellAppts = weekAppointments.filter((a: any) => dayjs(a.scheduledDate).format('YYYY-MM-DD') === d.format('YYYY-MM-DD') && dayjs(a.scheduledDate).hour() === h);
+                  return (
+                    <Box key={d.format('YYYY-MM-DD') + h} sx={{ borderTop: '1px solid #eee', minHeight: 36, px: 0.5 }}>
+                      {cellAppts.map((a: any) => (
+                        <Paper key={a.id} sx={{ mb: 0.5, p: 0.5, fontSize: 12, bgcolor: 'grey.100', borderLeft: `5px solid ${statusColor(a.status)}` }}>
+                          <span style={{ fontWeight: 700, color: '#1976d2' }}>{dayjs(a.scheduledDate).format('HH:mm')}</span>
+                          <span style={{ marginLeft: 4 }}>{a.patientName}</span>
+                          <div style={{ fontSize: 11, color: '#555' }}>{a.reason}</div>
+                        </Paper>
+                      ))}
+                    </Box>
+                  );
+                })
+              ])}
+            </Box>
+          </Paper>
+        </div>
+      )}
 
       <Modal open={modalOpen} title={selectedDate ? `Citas — ${selectedDate.format('YYYY-MM-DD')}` : 'Citas'} onClose={() => setModalOpen(false)}>
         {appointmentsForSelected.length === 0 ? (
           <div>No hay citas para esta fecha.</div>
         ) : (
           <ul>
-            {appointmentsForSelected.map((a) => (
+            {appointmentsForSelected.map((a: any) => (
               <li key={a.id} style={{ marginBottom: 8 }}>
-                <strong>{dayjs(a.date).format('HH:mm')}</strong> — <em>{a.client}</em>
-                <div>{a.notes}</div>
+                <strong>{dayjs(a.scheduledDate).format('HH:mm')}</strong> — <em>{a.patientName}</em>
+                <div>{a.reason}</div>
+                <div style={{ fontSize: 12, color: statusColor(a.status) }}>{a.status}</div>
               </li>
             ))}
           </ul>

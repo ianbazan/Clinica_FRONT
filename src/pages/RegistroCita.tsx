@@ -1,32 +1,71 @@
 import './RegistroCita.css'
+import { useState } from 'react'
+import { crearCita } from '../api/citaApi'
+import Button from '@mui/material/Button'
+import TextField from '@mui/material/TextField'
 
 export default function RegistroCita() {
+  const [razon, setRazon] = useState('')
+  const [fecha, setFecha] = useState('')
+  const [pacienteDni, setPacienteDni] = useState('')
+  const [mensaje, setMensaje] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setMensaje(null)
+    setError(null)
+    try {
+      const cita = await crearCita({
+        razon,
+        pacienteDni: pacienteDni.trim(),
+        fechaProgramada: fecha,
+      })
+      setMensaje(`Solicitud enviada. Estado: ${cita.estado}. ID: ${cita.id}`)
+      setRazon('')
+      setFecha('')
+      setPacienteDni('')
+    } catch (err: any) {
+      // Manejo de error específico para el mensaje del backend
+      if (err?.message === 'El dni del paciente no está registrado') {
+        setError('El dni del paciente no está registrado')
+      } else {
+        setError(err?.error?.detail || err?.message || 'Error al crear cita')
+      }
+    }
+  }
+
   return (
-    <div>
-      <h2>Registro de Cita</h2>
-      <p>Esta pantalla permite a la Operadora y al Admin registrar una cita.</p>
-      <div className="registro-page">
-        <form className="registro-form" onSubmit={(e) => e.preventDefault()}>
-        <div className="form-row">
-          <label htmlFor="cliente">Cliente:</label>
-          <input id="cliente" name="cliente" placeholder="Nombre cliente" />
-        </div>
-
-        <div className="form-row">
-          <label htmlFor="fecha">Fecha y hora:</label>
-          <input id="fecha" name="fecha" type="datetime-local" />
-        </div>
-
-        <div className="form-row">
-          <label htmlFor="notas">Notas:</label>
-          <textarea id="notas" name="notas" placeholder="Notas sobre la cita" />
-        </div>
-
-          <div className="registro-actions">
-            <button className="btn" type="submit">Registrar</button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <form onSubmit={handleSubmit} style={{ maxWidth: 400, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <h2>Solicitar Cita</h2>
+      <TextField
+        label="Razón"
+        value={razon}
+        onChange={e => setRazon(e.target.value)}
+        required
+        fullWidth
+      />
+      <TextField
+        label="Fecha y hora"
+        type="datetime-local"
+        value={fecha}
+        onChange={e => setFecha(e.target.value)}
+        required
+        fullWidth
+        InputLabelProps={{ shrink: true }}
+      />
+      <TextField
+        label="DNI del Paciente"
+        type="text"
+        value={pacienteDni}
+        onChange={e => setPacienteDni(e.target.value.replace(/[^0-9]/g, ''))}
+        required
+        fullWidth
+        inputProps={{ maxLength: 15 }}
+      />
+      <Button type="submit" variant="contained">Solicitar</Button>
+      {mensaje && <div style={{ color: 'green' }}>{mensaje}</div>}
+      {error && <div style={{ color: 'red' }}>{error}</div>}
+    </form>
   )
 }
