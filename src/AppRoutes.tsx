@@ -14,7 +14,6 @@ import BannerCarousel from './components/BannerCarousel';
 import { isTokenExpired } from "./auth/jwtUtils";
 
 const Nav = () => {
-  const { role, loginAs, logout } = useAuth();
   return (
     <header className="app-header">
       <nav className="app-nav">
@@ -28,17 +27,26 @@ const Nav = () => {
           <Link to="/calendario">Calendario</Link>
           <Link to="/citas">Listado Citas</Link>
         </div>
-        <div className="app-nav-right">
-          <span>Rol: <strong>{role ?? 'ninguno'}</strong></span>
-          <button className="btn" onClick={() => loginAs('Admin')}>Admin</button>
-          <button className="btn" onClick={() => loginAs('Psicologo')}>Psicologo</button>
-          <button className="btn" onClick={() => loginAs('Operadora')}>Recepcionista</button>
-          <button className="btn" onClick={() => logout()}>Salir</button>
-        </div>
       </nav>
     </header>
   );
 };
+
+const Footer = () => {
+  const { role, loginAs, logout } = useAuth();
+  return (
+    <footer className="app-footer">
+      <div>Clínica — © {new Date().getFullYear()}</div>
+      <div className="app-nav-right">
+        <span>Rol: <strong>{role ?? 'ninguno'}</strong></span>
+        <button className="btn" onClick={() => loginAs('Admin')}>Admin</button>
+        <button className="btn" onClick={() => loginAs('Psicologo')}>Psicologo</button>
+        <button className="btn" onClick={() => loginAs('Operadora')}>Recepcionista</button>
+        <button className="btn" onClick={() => logout()}>Salir</button>
+      </div>
+    </footer>
+  )
+}
 
 function AppLayout() {
   const [activeImage, setActiveImage] = useState<string | null>(null);
@@ -114,7 +122,7 @@ function AppLayout() {
           } />
         </Routes>
       </main>
-      <footer className="app-footer">Clínica — © {new Date().getFullYear()}</footer>
+      <Footer />
     </div>
   );
 }
