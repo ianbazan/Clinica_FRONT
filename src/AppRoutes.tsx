@@ -1,6 +1,5 @@
-// AppRoutes.jsx
-import { useState } from "react";
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { BrowserRouter, Routes, Route, Link, useNavigate, useLocation } from "react-router-dom";
 import ProtectedRoute from './routes/ProtectedRoute';
 import RegistroCita from './pages/RegistroCita';
 import RegistroPaciente from './pages/RegistroPaciente';
@@ -9,8 +8,10 @@ import GestorEmpleados from './pages/GestorEmpleados';
 import ListadoCitas from './pages/ListadoCitas';
 import GestionTerapias from './pages/GestionTerapias';
 import Calendario from './pages/Calendario';
+import Login from './pages/Login';
 import { AuthProvider, useAuth } from './auth/mockAuth';
 import BannerCarousel from './components/BannerCarousel';
+import { isTokenExpired } from "./auth/jwtUtils";
 
 const Nav = () => {
   const { role, loginAs, logout } = useAuth();
@@ -39,91 +40,115 @@ const Nav = () => {
   );
 };
 
-export default function AppRoutes() {
+function AppLayout() {
   const [activeImage, setActiveImage] = useState<string | null>(null);
-
   const homeBlocks = [
     { title: "Tipos de Autocuidado", url: "https://i.pinimg.com/736x/fa/41/66/fa4166b28395fae3f8589b2f24cc1812.jpg" },
     { title: "Ques es Salud Mental?", url: "https://i.pinimg.com/736x/e8/0e/dc/e80edc3bfc6b2665b12cf98a7775390e.jpg" },
     { title: "Juntos por un bien", url: "https://i.pinimg.com/736x/81/11/1f/81111fabb273dc4ecb43b79690feadd0.jpg" },
     { title: "Siempre Importa", url: "https://i.pinimg.com/736x/35/0d/bb/350dbb83264f3b9c583ad4a5c4207310.jpg" }
   ];
+  return (
+    <div className="app-root">
+      <Nav />
+      <main className="app-main">
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <div className="home-container">
+                <h1 className="home-title">
+                  BIENVENIDO AL SISTEMA WEB DE GESTIÓN DE ATENCIONES<br/>CLÍNICA PSICOLOGICO NIÑOS FELICES
+                </h1>
+                <BannerCarousel />
+                <p className="home-subtitle">
+                  Un espacio donde cada avance florece y cada sonrisa cuenta.
+                </p>
+                <div className="home-blocks">
+                  {homeBlocks.map((block, i) => (
+                    <div
+                      key={i}
+                      className="home-box"
+                      onClick={() => setActiveImage(block.url)}
+                      style={{ cursor: "pointer" }}
+                    >
+                      {block.title}
+                    </div>
+                  ))}
+                </div>
+                {/* Modal para mostrar la imagen */}
+                {activeImage && (
+                  <div
+                    className="modal-overlay"
+                    onClick={() => setActiveImage(null)}
+                    style={{
+                      position: "fixed",
+                      inset: 0,
+                      background: "rgba(0,0,0,0.6)",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      zIndex: 1000
+                    }}
+                  >
+                    <img
+                      src={activeImage}
+                      alt="Referencia"
+                      style={{ maxHeight: "80%", maxWidth: "80%", borderRadius: "12px" }}
+                    />
+                  </div>
+                )}
+              </div>
+            }
+          />
+          <Route path="/registro-paciente" element={<ProtectedRoute allowedRoles={["Admin","Operadora"]}><RegistroPaciente /></ProtectedRoute>} />
+          <Route path="/registro" element={<ProtectedRoute allowedRoles={["Admin","Operadora"]}><RegistroCita /></ProtectedRoute>} />
+          <Route path="/historial" element={<ProtectedRoute allowedRoles={["Admin","Psicologo"]}><HistorialClinico /></ProtectedRoute>} />
+          <Route path="/empleados" element={<ProtectedRoute allowedRoles={["Admin"]}><GestorEmpleados /></ProtectedRoute>} />
+          <Route path="/terapias" element={<ProtectedRoute allowedRoles={["Admin","Operadora"]}><GestionTerapias /></ProtectedRoute>} />
+          <Route path="/calendario" element={<ProtectedRoute allowedRoles={["Admin","Psicologo","Operadora"]}><Calendario /></ProtectedRoute>} />
+          <Route path="/citas" element={
+            <ProtectedRoute allowedRoles={["Recepcionista", "Operadora"]}>
+              <ListadoCitas />
+            </ProtectedRoute>
+          } />
+        </Routes>
+      </main>
+      <footer className="app-footer">Clínica — © {new Date().getFullYear()}</footer>
+    </div>
+  );
+}
 
+
+function RequireAuth({ children }: { children: React.ReactNode }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (!token || isTokenExpired(token)) {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      navigate('/login', { replace: true, state: { from: location } });
+    }
+  }, [navigate, location]);
+  return <>{children}</>;
+}
+
+export default function AppRoutes() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <div className="app-root">
-          <Nav />
-          <main className="app-main">
-            <Routes>
-              <Route
-                path="/"
-                element={
-                  <div className="home-container">
-                    <h1 className="home-title">
-                      BIENVENIDO AL SISTEMA WEB DE GESTIÓN DE ATENCIONES<br/>CLÍNICA PSICOLOGICO NIÑOS FELICES
-                    </h1>
-
-                    <BannerCarousel />
-
-                    <p className="home-subtitle">
-                      Un espacio donde cada avance florece y cada sonrisa cuenta.
-                    </p>
-
-                    <div className="home-blocks">
-                      {homeBlocks.map((block, i) => (
-                        <div
-                          key={i}
-                          className="home-box"
-                          onClick={() => setActiveImage(block.url)}
-                          style={{ cursor: "pointer" }}
-                        >
-                          {block.title}
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Modal para mostrar la imagen */}
-                    {activeImage && (
-                      <div
-                        className="modal-overlay"
-                        onClick={() => setActiveImage(null)}
-                        style={{
-                          position: "fixed",
-                          inset: 0,
-                          background: "rgba(0,0,0,0.6)",
-                          display: "flex",
-                          justifyContent: "center",
-                          alignItems: "center",
-                          zIndex: 1000
-                        }}
-                      >
-                        <img
-                          src={activeImage}
-                          alt="Referencia"
-                          style={{ maxHeight: "80%", maxWidth: "80%", borderRadius: "12px" }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                }
-              />
-
-              <Route path="/registro-paciente" element={<ProtectedRoute allowedRoles={["Admin","Operadora"]}><RegistroPaciente /></ProtectedRoute>} />
-              <Route path="/registro" element={<ProtectedRoute allowedRoles={["Admin","Operadora"]}><RegistroCita /></ProtectedRoute>} />
-              <Route path="/historial" element={<ProtectedRoute allowedRoles={["Admin","Psicologo"]}><HistorialClinico /></ProtectedRoute>} />
-              <Route path="/empleados" element={<ProtectedRoute allowedRoles={["Admin"]}><GestorEmpleados /></ProtectedRoute>} />
-              <Route path="/terapias" element={<ProtectedRoute allowedRoles={["Admin","Operadora"]}><GestionTerapias /></ProtectedRoute>} />
-              <Route path="/calendario" element={<ProtectedRoute allowedRoles={["Admin","Psicologo","Operadora"]}><Calendario /></ProtectedRoute>} />
-              <Route path="/citas" element={
-                <ProtectedRoute allowedRoles={["Recepcionista", "Operadora"]}>
-                  <ListadoCitas />
-                </ProtectedRoute>
-              } />
-            </Routes>
-          </main>
-          <footer className="app-footer">Clínica — © {new Date().getFullYear()}</footer>
-        </div>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route
+            path="*"
+            element={
+              <RequireAuth>
+                <AppLayout />
+              </RequireAuth>
+            }
+          />
+        </Routes>
       </BrowserRouter>
     </AuthProvider>
   );

@@ -16,14 +16,19 @@ export async function apiFetch<T = any>(path: string, opts: FetchOptions = {}): 
   const { query, ...rest } = opts
   const url = buildUrl(path, query)
 
+  // Add Authorization header from localStorage if present
+  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    ...rest.headers as Record<string, string>,
+  }
+  if (token) headers['Authorization'] = `Bearer ${token}`
+
   const res = await fetch(url, {
     mode: 'cors',
     credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      ...rest.headers,
-    },
+    headers,
     ...rest,
   })
 

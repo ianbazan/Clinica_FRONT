@@ -1,17 +1,8 @@
+
 import { useMemo } from 'react'
 import dayjs from 'dayjs'
-
-type Appointment = {
-  id: number;
-  year: number;
-  month: number;
-  day: number;
-  reason: string;
-  patientName: string;
-  status: string;
-  isActive: boolean;
-  scheduledDate: string;
-};
+import { employees } from '../data/mockEmployees';
+import type { Appointment } from '../types/appointment';
 
 interface Props {
   month: dayjs.Dayjs;
@@ -79,6 +70,9 @@ export default function CalendarGrid({ month, appointments, onPrev, onNext, onSe
                     <span className="appt-time">{dayjs(a.scheduledDate).format('HH:mm')}</span>
                     <span className="appt-client"> — {a.patientName}</span>
                     <div className="appt-notes">{a.reason}</div>
+                    <div className="appt-professional" style={{ fontSize: 11, color: '#888' }}>
+                      {(a.professionalName || (employees.find(e => e.id === a.professionalId)?.name)) ? `Prof: ${a.professionalName || (employees.find(e => e.id === a.professionalId)?.name)}` : ''}
+                    </div>
                   </div>
                 ))}
                 {cellAppts.length > 3 && <div className="more">+{cellAppts.length - 3} más</div>}

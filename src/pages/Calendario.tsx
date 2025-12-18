@@ -1,6 +1,8 @@
 import { useMemo, useState, useEffect } from 'react'
+import { employees } from '../data/mockEmployees';
 import dayjs from 'dayjs'
 import CalendarGrid from '../components/CalendarGrid';
+import type { Appointment } from '../types/appointment';
 import Modal from '../components/Modal';
 import NoteBox from '../components/NoteBox';
 import { Box, MenuItem, Select, Typography, ToggleButton, ToggleButtonGroup, Paper, Button } from '@mui/material';
@@ -12,15 +14,25 @@ export default function Calendario() {
   const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [view, setView] = useState<'month' | 'week'>('month');
-  const [appointments, setAppointments] = useState([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [professional, setProfessional] = useState<string>('ALL');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
 
   // Fetch appointments from backend
   useEffect(() => {
     async function fetchAppointments() {
-
+      setLoading(true);
+      setError(null);
       try {
-        const res = await fetch(`api/appointments/calendar?patient=${client}&month=${month.month() + 1}&year=${month.year()}`);
+        const params = [
+          client !== 'ALL' ? `patient=${encodeURIComponent(client)}` : '',
+          professional !== 'ALL' ? `professional=${encodeURIComponent(professional)}` : '',
+          `month=${month.month() + 1}`,
+          `year=${month.year()}`
+        ].filter(Boolean).join('&');
+        const res = await fetch(`api/appointments/calendar?${params}`);
         if (res.status === 204) {
           setAppointments([]);
         } else if (res.ok) {
@@ -28,21 +40,38 @@ export default function Calendario() {
           setAppointments(data);
         } else {
           const err = await res.json().catch(() => ({}));
-
+          setError(err.message || 'Error al cargar citas');
         }
       } catch (e: any) {
-
+        setError(e.message || 'Error de red al cargar citas');
       } finally {
-
+        setLoading(false);
       }
     }
     fetchAppointments();
-  }, [client, month]);
+  }, [client, professional, month]);
 
   // Obtener lista de pacientes únicos para el filtro
   const clients = useMemo(() => {
     const set = new Set<string>();
     appointments.forEach((a: any) => set.add(a.patientName));
+    return ['ALL', ...Array.from(set)];
+  }, [appointments]);
+
+  // Obtener lista de profesionales únicos para el filtro
+  const professionals = useMemo(() => {
+    const set = new Set<string>();
+    appointments.forEach((a: any) => {
+      if (a.professionalName) set.add(a.professionalName);
+      else if (a.professionalId) {
+        const emp = employees.find(e => e.id === a.professionalId);
+        if (emp) set.add(emp.name);
+      }
+    });
+    // Si no hay ninguno, usar todos los empleados tipo Psicologo
+    if (set.size === 0) {
+      employees.filter(e => e.role === 'Psicologo').forEach(e => set.add(e.name));
+    }
     return ['ALL', ...Array.from(set)];
   }, [appointments]);
 
@@ -112,6 +141,19 @@ export default function Calendario() {
           </Select>
         </Box>
         <Box display="flex" alignItems="center" gap={1}>
+          <Typography variant="body2">Profesional:</Typography>
+          <Select
+            value={professional}
+            onChange={(e) => setProfessional(e.target.value)}
+            size="small"
+            sx={{ minWidth: 140 }}
+          >
+            {professionals.map((p) => (
+              <MenuItem key={p} value={p}>{p}</MenuItem>
+            ))}
+          </Select>
+        </Box>
+        <Box display="flex" alignItems="center" gap={1}>
           <Typography variant="body2">Mes:</Typography>
           <Select
             value={month.month()}
@@ -150,13 +192,19 @@ export default function Calendario() {
       </Box>
 
 
+      {error && (
+        <Box color="error.main" mb={2}>{error}</Box>
+      )}
+      {loading && (
+        <Box mb={2}>Cargando citas...</Box>
+      )}
       {view === 'month' && (
         <div className="calendar-root">
           <div className="calendar-layout">
             <div className="calendar-main">
               <CalendarGrid
                 month={month}
-                appointments={appointments}
+                appointments={professional === 'ALL' ? appointments : appointments.filter((a) => (a.professionalName || (employees.find(e => e.id === a.professionalId)?.name)) === professional)}
                 onPrev={onPrev}
                 onNext={onNext}
                 onSelectDate={onSelectDate}
@@ -189,7 +237,12 @@ export default function Calendario() {
               {hours.map((h) => [
                 <Box key={h} sx={{ borderTop: '1px solid #eee', py: 1, fontSize: 13, color: '#888', textAlign: 'right', pr: 1 }}>{h}:00</Box>,
                 ...weekDays.map((d) => {
-                  const cellAppts = weekAppointments.filter((a: any) => dayjs(a.scheduledDate).format('YYYY-MM-DD') === d.format('YYYY-MM-DD') && dayjs(a.scheduledDate).hour() === h);
+                  const cellAppts = weekAppointments.filter((a: any) => {
+                    const matchDay = dayjs(a.scheduledDate).format('YYYY-MM-DD') === d.format('YYYY-MM-DD');
+                    const matchHour = dayjs(a.scheduledDate).hour() === h;
+                    const matchProf = professional === 'ALL' || (a.professionalName || (employees.find(e => e.id === a.professionalId)?.name)) === professional;
+                    return matchDay && matchHour && matchProf;
+                  });
                   return (
                     <Box key={d.format('YYYY-MM-DD') + h} sx={{ borderTop: '1px solid #eee', minHeight: 36, px: 0.5 }}>
                       {cellAppts.map((a: any) => (
@@ -197,6 +250,9 @@ export default function Calendario() {
                           <span style={{ fontWeight: 700, color: '#1976d2' }}>{dayjs(a.scheduledDate).format('HH:mm')}</span>
                           <span style={{ marginLeft: 4 }}>{a.patientName}</span>
                           <div style={{ fontSize: 11, color: '#555' }}>{a.reason}</div>
+                          <div style={{ fontSize: 11, color: '#888' }}>
+                            {a.professionalName || (employees.find(e => e.id === a.professionalId)?.name) ? `Prof: ${a.professionalName || (employees.find(e => e.id === a.professionalId)?.name)}` : ''}
+                          </div>
                         </Paper>
                       ))}
                     </Box>
@@ -213,13 +269,18 @@ export default function Calendario() {
           <div>No hay citas para esta fecha.</div>
         ) : (
           <ul>
-            {appointmentsForSelected.map((a: any) => (
-              <li key={a.id} style={{ marginBottom: 8 }}>
-                <strong>{dayjs(a.scheduledDate).format('HH:mm')}</strong> — <em>{a.patientName}</em>
-                <div>{a.reason}</div>
-                <div style={{ fontSize: 12, color: statusColor(a.status) }}>{a.status}</div>
-              </li>
-            ))}
+            {appointmentsForSelected
+              .filter((a: any) => professional === 'ALL' || (a.professionalName || (employees.find(e => e.id === a.professionalId)?.name)) === professional)
+              .map((a: any) => (
+                <li key={a.id} style={{ marginBottom: 8 }}>
+                  <strong>{dayjs(a.scheduledDate).format('HH:mm')}</strong> — <em>{a.patientName}</em>
+                  <div>{a.reason}</div>
+                  <div style={{ fontSize: 11, color: '#888' }}>
+                    {a.professionalName || (employees.find(e => e.id === a.professionalId)?.name) ? `Prof: ${a.professionalName || (employees.find(e => e.id === a.professionalId)?.name)}` : ''}
+                  </div>
+                  <div style={{ fontSize: 12, color: statusColor(a.status) }}>{a.status}</div>
+                </li>
+              ))}
           </ul>
         )}
       </Modal>

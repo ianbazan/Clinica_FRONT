@@ -7,10 +7,10 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'https://msif-app-284932020200.us-central1.run.app',
         changeOrigin: true,
-        // rewrite: (path) => path.replace(/^\/api/, ''),
-      },
-    },
-  },
+        secure: false
+      }
+    }
+  }
 })
