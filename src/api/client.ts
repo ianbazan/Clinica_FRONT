@@ -1,4 +1,5 @@
-const DEFAULT_API = '/api' // Use proxy in development
+const MODE = (import.meta as any).env?.MODE ?? 'production'
+const DEFAULT_API = MODE === 'development' ? '/api' : 'https://msif-app-284932020200.us-central1.run.app'
 
 export const API_BASE = (import.meta as any).env?.VITE_API_URL ?? DEFAULT_API
 
