@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from 'react'
+import apiFetch from '../api/client'
 import { employees } from '../data/mockEmployees';
 import dayjs from 'dayjs'
 import CalendarGrid from '../components/CalendarGrid';
@@ -26,22 +27,14 @@ export default function Calendario() {
       setLoading(true);
       setError(null);
       try {
-        const params = [
-          client !== 'ALL' ? `patient=${encodeURIComponent(client)}` : '',
-          professional !== 'ALL' ? `professional=${encodeURIComponent(professional)}` : '',
-          `month=${month.month() + 1}`,
-          `year=${month.year()}`
-        ].filter(Boolean).join('&');
-        const res = await fetch(`api/appointments/calendar?${params}`);
-        if (res.status === 204) {
-          setAppointments([]);
-        } else if (res.ok) {
-          const data = await res.json();
-          setAppointments(data);
-        } else {
-          const err = await res.json().catch(() => ({}));
-          setError(err.message || 'Error al cargar citas');
+        const query: Record<string, string | number | boolean | undefined> = {
+          patient: client !== 'ALL' ? client : undefined,
+          professional: professional !== 'ALL' ? professional : undefined,
+          month: month.month() + 1,
+          year: month.year(),
         }
+        const data = await apiFetch('/api/appointments/calendar', { query: query as Record<string, string | number | boolean> })
+        setAppointments(data ?? []);
       } catch (e: any) {
         setError(e.message || 'Error de red al cargar citas');
       } finally {

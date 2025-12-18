@@ -1,7 +1,5 @@
-const MODE = (import.meta as any).env?.MODE ?? 'production'
-const DEFAULT_API = MODE === 'development' ? '/api' : 'https://msif-app-284932020200.us-central1.run.app'
-
-export const API_BASE = (import.meta as any).env?.VITE_API_URL ?? DEFAULT_API
+// Force backend URL for all environments (bypass Vite proxy)
+export const API_BASE = 'https://msif-app-284932020200.us-central1.run.app'
 
 type FetchOptions = RequestInit & { query?: Record<string, string | number | boolean> }
 

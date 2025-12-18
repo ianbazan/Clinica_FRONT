@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import apiFetch from '../api/client'
 import { useNavigate } from 'react-router-dom';
 import '../App.css';
 
@@ -27,24 +28,12 @@ const Login: React.FC = () => {
     if (!validate()) return;
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        // setError(data?.error?.detail || 'Error al iniciar sesión.');
-          localStorage.setItem('accessToken', "asdasdasdqasdasd");
-        localStorage.setItem('refreshToken', "asdasdasdasd");
-        navigate('/dashboard');
-      } else {
-        localStorage.setItem('accessToken', data.accessToken);
-        localStorage.setItem('refreshToken', data.refreshToken);
-        navigate('/dashboard');
-      }
-    } catch (err) {
-      setError('Error de red o del servidor.');
+      const data = await apiFetch('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) })
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err?.message || 'Error de red o del servidor.');
     } finally {
       setLoading(false);
     }

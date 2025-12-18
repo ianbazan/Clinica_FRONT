@@ -52,149 +52,90 @@ export interface ActivityDto {
 }
 
 // --- Treatment Plans ---
+import apiFetch, { API_BASE } from './client'
+
 export async function createTreatmentPlan(body: Omit<TreatmentPlanDto, 'id' | 'objectives'>): Promise<TreatmentPlanDto> {
-  const res = await fetch('/api/treatment-plans', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw await res.json();
-  return res.json();
+  return apiFetch('/api/treatment-plans', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
 }
 
 export async function listTreatmentPlans(patientId?: number, isActive?: boolean): Promise<TreatmentPlanDto[]> {
-  const params = [];
-  if (typeof isActive === 'boolean') params.push(`status=${isActive}`);
-  if (patientId) params.push(`patientId=${patientId}`);
-  const res = await fetch(`/api/treatment-plans${params.length ? '?' + params.join('&') : ''}`);
-  if (!res.ok) throw await res.json();
-  return res.json();
+  const query: Record<string, string | number | boolean> = {}
+  if (typeof isActive === 'boolean') query.status = isActive
+  if (patientId) query.patientId = patientId
+  return apiFetch('/api/treatment-plans', { query })
 }
 
 export async function updateTreatmentPlan(id: number, body: Partial<TreatmentPlanDto>): Promise<TreatmentPlanDto> {
-  const res = await fetch(`/api/treatment-plans/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw await res.json();
-  return res.json();
+  return apiFetch(`/api/treatment-plans/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
 }
 
 export async function closeTreatmentPlan(id: number): Promise<TreatmentPlanDto> {
-  const res = await fetch(`/api/treatment-plans/${id}/close`, { method: 'PATCH' });
-  if (!res.ok) throw await res.json();
-  return res.json();
+  return apiFetch(`/api/treatment-plans/${id}/close`, { method: 'PATCH' })
 }
 
 export async function reevaluateTreatmentPlan(id: number): Promise<TreatmentPlanDto> {
-  const res = await fetch(`/api/treatment-plans/${id}/reevaluate`, { method: 'PATCH' });
-  if (!res.ok) throw await res.json();
-  return res.json();
+  return apiFetch(`/api/treatment-plans/${id}/reevaluate`, { method: 'PATCH' })
 }
 
 // --- Objectives ---
 export async function createObjective(planId: number, body: Omit<ObjectiveDto, 'id' | 'isActive'>): Promise<ObjectiveDto> {
-  const res = await fetch(`/api/treatment-plans/${planId}/objectives`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw await res.json();
-  return res.json();
+  return apiFetch(`/api/treatment-plans/${planId}/objectives`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
 }
 
 export async function listObjectives(planId: number): Promise<ObjectiveDto[]> {
-  const res = await fetch(`/api/treatment-plans/${planId}/objectives`);
-  if (!res.ok) throw await res.json();
-  return res.json();
+  return apiFetch(`/api/treatment-plans/${planId}/objectives`)
 }
 
 export async function updateObjective(id: number, body: Partial<ObjectiveDto>): Promise<ObjectiveDto> {
-  const res = await fetch(`/api/objectives/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw await res.json();
-  return res.json();
+  return apiFetch(`/api/objectives/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
 }
 
 // --- Therapy Sessions ---
 export async function createTherapySession(body: Omit<TherapySessionDto, 'id'>): Promise<TherapySessionDto> {
-  const res = await fetch('/api/therapy-sessions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw await res.json();
-  return res.json();
+  return apiFetch('/api/therapy-sessions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
 }
 
 export async function listTherapySessions(patientId?: number, isActive?: boolean, from?: string, to?: string): Promise<TherapySessionDto[]> {
-  const params = [];
-  if (typeof isActive === 'boolean') params.push(`status=${isActive}`);
-  if (patientId) params.push(`patientId=${patientId}`);
-  if (from) params.push(`from=${encodeURIComponent(from)}`);
-  if (to) params.push(`to=${encodeURIComponent(to)}`);
-  const res = await fetch(`/api/therapy-sessions${params.length ? '?' + params.join('&') : ''}`);
-  if (!res.ok) throw await res.json();
-  return res.json();
+  const query: Record<string, string | number | boolean> = {}
+  if (typeof isActive === 'boolean') query.status = isActive
+  if (patientId) query.patientId = patientId
+  if (from) query.from = from
+  if (to) query.to = to
+  return apiFetch('/api/therapy-sessions', { query })
 }
 
 export async function updateTherapySession(id: number, body: Partial<TherapySessionDto>): Promise<TherapySessionDto> {
-  const res = await fetch(`/api/therapy-sessions/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw await res.json();
-  return res.json();
+  return apiFetch(`/api/therapy-sessions/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
 }
 
 // --- Activities ---
 export async function createActivity(body: Omit<ActivityDto, 'id'>): Promise<ActivityDto> {
-  const res = await fetch('/api/activities', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw await res.json();
-  return res.json();
+  return apiFetch('/api/activities', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
 }
 
 export async function listActivities(therapySessionId?: number, isActive?: boolean): Promise<ActivityDto[]> {
-  const params = [];
-  if (typeof isActive === 'boolean') params.push(`status=${isActive}`);
-  if (therapySessionId) params.push(`therapySessionId=${therapySessionId}`);
-  const res = await fetch(`/api/activities${params.length ? '?' + params.join('&') : ''}`);
-  if (!res.ok) throw await res.json();
-  return res.json();
+  const query: Record<string, string | number | boolean> = {}
+  if (typeof isActive === 'boolean') query.status = isActive
+  if (therapySessionId) query.therapySessionId = therapySessionId
+  return apiFetch('/api/activities', { query })
 }
 
 export async function updateActivity(id: number, body: Partial<ActivityDto>): Promise<ActivityDto> {
-  const res = await fetch(`/api/activities/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw await res.json();
-  return res.json();
+  return apiFetch(`/api/activities/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
 }
 
 // --- Progress Report ---
 export async function getProgressReport(patientId: number, from: string, to: string): Promise<any> {
-  const res = await fetch(`/api/progress-report?patientId=${patientId}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`);
-  if (!res.ok) throw await res.json();
-  return res.json();
+  const query: Record<string, string | number | boolean> = { patientId, from, to }
+  return apiFetch('/api/progress-report', { query })
 }
 
 export async function generateProgressReportPDF(patientId: number, from: string, to: string): Promise<Blob> {
-  const res = await fetch(`/api/progress-report/pdf?patientId=${patientId}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`, {
-    method: 'POST',
-  });
-  if (!res.ok) throw await res.json();
-  return res.blob();
+  // apiFetch parses JSON; for binary response use fetch with absolute URL
+  const path = `/api/progress-report/pdf?patientId=${patientId}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
+  const res = await fetch(new URL(path, API_BASE).toString(), { method: 'POST' })
+  if (!res.ok) throw new Error(`API ${res.status} ${res.statusText}`)
+  return res.blob()
 }
 
 // Eliminado ObjetivoDto duplicado, usar solo ObjectiveDto
@@ -205,9 +146,7 @@ export async function generateProgressReportPDF(patientId: number, from: string,
 
 // Listar planes de un paciente
 export async function listarPlanesPorPaciente(pacienteId: number): Promise<PlanTratamientoDto[]> {
-  const res = await fetch(`/api/plan_tratamiento?pacienteId=${pacienteId}`);
-  if (!res.ok) throw await res.json();
-  return res.json();
+  return apiFetch('/api/plan_tratamiento', { query: { pacienteId } })
 }
 
 // Listar objetivos de un plan
