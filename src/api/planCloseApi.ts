@@ -1,5 +1,5 @@
 // API para cerrar o reevaluar plan terapéutico
-import { PlanTratamientoDto } from './planApi';
+import type { PlanTratamientoDto } from './planApi';
 
 // Cerrar plan terapéutico (marcar como inactivo/finalizado)
 export async function cerrarPlanTratamiento(planId: number): Promise<PlanTratamientoDto> {
