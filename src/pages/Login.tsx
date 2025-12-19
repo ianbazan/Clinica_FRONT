@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import apiFetch from '../api/client'
 import { useNavigate } from 'react-router-dom';
 import '../App.css';
+import { Box, Button, TextField, Typography, Link as MuiLink, Alert, CircularProgress, Paper } from '@mui/material';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -40,36 +41,52 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="login-container">
-      <h2>Iniciar Sesión</h2>
-      <form onSubmit={handleSubmit} className="login-form">
-      {/* <form onSubmit={e => e.preventDefault()} className="login-form"> */}
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          disabled={loading}
-        />
-        <input
-          type="password"
-          placeholder="Contraseña"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          disabled={loading}
-        />
-        {error && <div className="error-message">{error}</div>}
-        <button type="submit" disabled={loading}>
-          {loading ? 'Ingresando...' : 'Ingresar'}
-        </button>
-      </form>
-      <div className="register-link">
-        ¿No tienes cuenta? <a href="/register">Regístrate</a>
-      </div>
-      <div className="register-link">
-        ¿Olvidaste tu contraseña? <a href="/support">Soporte</a>
-      </div>
-    </div>
+    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}>
+      <Paper elevation={3} sx={{ width: 400, p: 4 }}>
+        <Typography variant="h5" component="h2" align="center" gutterBottom>
+          Iniciar Sesión
+        </Typography>
+        <Box component="form" onSubmit={handleSubmit}>
+          <TextField
+            label="Email"
+            type="email"
+            fullWidth
+            margin="normal"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            disabled={loading}
+          />
+          <TextField
+            label="Contraseña"
+            type="password"
+            fullWidth
+            margin="normal"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            disabled={loading}
+          />
+
+          {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
+
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            sx={{ mt: 3 }}
+            disabled={loading}
+            startIcon={loading ? <CircularProgress size={18} /> : undefined}
+          >
+            {loading ? 'Ingresando...' : 'Ingresar'}
+          </Button>
+
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+            <MuiLink href="/register" underline="hover">¿No tienes cuenta?</MuiLink>
+            <MuiLink href="/support" underline="hover">¿Olvidaste tu contraseña?</MuiLink>
+          </Box>
+        </Box>
+      </Paper>
+    </Box>
   );
 };
 

@@ -116,7 +116,7 @@ function AppLayout() {
           <Route path="/terapias" element={<ProtectedRoute allowedRoles={["Admin","Operadora"]}><GestionTerapias /></ProtectedRoute>} />
           <Route path="/calendario" element={<ProtectedRoute allowedRoles={["Admin","Psicologo","Operadora"]}><Calendario /></ProtectedRoute>} />
           <Route path="/citas" element={
-            <ProtectedRoute allowedRoles={["Recepcionista", "Operadora"]}>
+            <ProtectedRoute allowedRoles={["Recepcionista", "Operadora", "Psicologo"]}>
               <ListadoCitas />
             </ProtectedRoute>
           } />
