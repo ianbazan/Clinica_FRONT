@@ -211,7 +211,6 @@ select:focus {
 
 /* Headings */
 h1 {
-  font-size: 2.2rem;
   margin-bottom: 10px;
 }
 h2 {
@@ -253,8 +252,8 @@ p {
           inset: 0;
           background: linear-gradient(
             to bottom,
-            rgba(0, 0, 0, 0.25),
-            rgba(0, 0, 0, 0.55)
+            rgba(0, 0, 0, 0.15),
+            rgba(0, 0, 0, 0.70)
           );
         }
 
@@ -269,15 +268,17 @@ p {
         }
 
         .banner-text h2 {
-          font-size: 2rem;
+          font-size: 3.7rem;
           font-weight: 700;
           margin: 0;
+          color:#90D5FF;
         }
 
         .banner-text p {
-          font-size: 1.1rem;
+          font-size: 1.5rem;
           margin: 5px 0 0;
           opacity: 0.9;
+          color: #ffffff;
         }
 
         /* Animación suave */

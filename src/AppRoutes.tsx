@@ -14,6 +14,7 @@ import BannerCarousel from './components/BannerCarousel';
 import { isTokenExpired } from "./auth/jwtUtils";
 
 const Nav = () => {
+  const navigate = useNavigate();
   return (
     <header className="app-header">
       <nav className="app-nav">
@@ -26,6 +27,9 @@ const Nav = () => {
           <Link to="/terapias">Gestión terapias</Link>
           <Link to="/calendario">Calendario</Link>
           <Link to="/citas">Listado Citas</Link>
+        </div>
+        <div className="app-nav-right" style={{padding: '0 0 0 2rem'}}>
+          <button className="btn" onClick={() => navigate('/login')}>Cerrar sesión</button>
         </div>
       </nav>
     </header>

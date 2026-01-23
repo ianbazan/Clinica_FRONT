@@ -48,10 +48,17 @@ export default function InformeProgresoModal({ open, onClose }: { open: boolean;
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      BackdropProps={{ style: { backgroundColor: 'rgba(0,0,0,0.1)' } }}
+    >
       <DialogTitle>Informe de Progreso Terapéutico</DialogTitle>
-      <DialogContent>
+      <DialogContent><br/>
         <Box display="flex" gap={2} mb={2}>
+          
           <FormControl fullWidth>
             <InputLabel>Paciente</InputLabel>
             <Select
@@ -63,6 +70,10 @@ export default function InformeProgresoModal({ open, onClose }: { open: boolean;
               {pacientesMock.map(p => <MenuItem key={p.id} value={p.id}>{p.nombre}</MenuItem>)}
             </Select>
           </FormControl>
+          
+        </Box>
+        <br/>
+        <Box display="flex" gap={2} mb={2}>
           <TextField
             label="Desde"
             type="date"
@@ -79,6 +90,7 @@ export default function InformeProgresoModal({ open, onClose }: { open: boolean;
           />
           <Button variant="contained" onClick={handleConsultar}>Consultar</Button>
         </Box>
+
         {error && <Box color="error.main" mb={2}>{error}</Box>}
         {consolidado && (
           <Box>

@@ -32,7 +32,7 @@ const Login: React.FC = () => {
       const data = await apiFetch('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) })
       localStorage.setItem('accessToken', data.accessToken);
       localStorage.setItem('refreshToken', data.refreshToken);
-      navigate('/dashboard');
+      navigate('/');
     } catch (err: any) {
       setError(err?.message || 'Error de red o del servidor.');
     } finally {
@@ -43,7 +43,7 @@ const Login: React.FC = () => {
   return (
     <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}>
       <Paper elevation={3} sx={{ width: 400, p: 4 }}>
-        <Typography variant="h5" component="h2" align="center" gutterBottom>
+        <Typography variant="h5" color={'primary'} align="center" gutterBottom>
           Iniciar Sesión
         </Typography>
         <Box component="form" onSubmit={handleSubmit}>

@@ -44,7 +44,13 @@ export default function CerrarPlanModal({ open, onClose, pacienteId, onSuccess }
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      BackdropProps={{ style: { backgroundColor: 'rgba(0,0,0,0.1)' } }}
+    >
       <DialogTitle>Cerrar o Reevaluar Plan Terapéutico</DialogTitle>
       <DialogContent>
         <Typography variant="body2" mb={2}>Selecciona el plan activo y la acción a realizar.</Typography>
