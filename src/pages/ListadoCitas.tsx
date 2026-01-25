@@ -72,7 +72,9 @@ export default function ListadoCitas() {
   // Profesionales activos
   const [profesionales, setProfesionales] = useState<ProfesionalDto[]>([]);
   useEffect(() => {
-    getProfesionales().then(setProfesionales).catch(() => setProfesionales([]));
+    getProfesionales()
+      .then(data => setProfesionales(data || []))
+      .catch(() => setProfesionales([]));
   }, []);
   // Estados y funciones para el modal de asignación de profesional
   const [showModal, setShowModal] = useState(false)
@@ -452,7 +454,7 @@ export default function ListadoCitas() {
                   <MenuItem value="">
                     <em>Seleccione un profesional</em>
                   </MenuItem>
-                  {profesionales
+                  {(profesionales ?? [])
                     .filter(prof => prof.isActive)
                     .map(prof => (
                       <MenuItem key={prof.id} value={prof.id}>

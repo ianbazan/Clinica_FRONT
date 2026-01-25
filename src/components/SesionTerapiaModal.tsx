@@ -16,6 +16,7 @@ interface SesionTerapiaModalProps {
 export default function SesionTerapiaModal({ open, onClose, pacienteId, planActivo, onSuccess }: SesionTerapiaModalProps) {
   const [nota, setNota] = useState('');
   const [objetivos, setObjetivos] = useState<ObjectiveDto[]>([]);
+  const [foundPlanId, setFoundPlanId] = useState<number | null>(null);
   const [actividades, setActividades] = useState<string[]>([]);
   const [nuevaActividad, setNuevaActividad] = useState('');
   const [objetivoEstados, setObjetivoEstados] = useState<Record<number, ObjectiveDto['status']>>({});
@@ -24,13 +25,22 @@ export default function SesionTerapiaModal({ open, onClose, pacienteId, planActi
 
   useEffect(() => {
     if (planActivo) {
-      listObjectives(planActivo).then(setObjetivos);
+      setFoundPlanId(planActivo);
+      listObjectives(planActivo).then(data => setObjetivos(data || [])).catch(() => setObjetivos([]));
     } else if (pacienteId) {
       // Buscar plan activo automáticamente si no se pasa planActivo
       listTreatmentPlans(pacienteId, true).then(plans => {
         if (plans.length > 0) {
-          listObjectives(plans[0].id).then(setObjetivos);
+          const planId = plans[0].id;
+          setFoundPlanId(planId);
+          listObjectives(planId).then(data => setObjetivos(data || [])).catch(() => setObjetivos([]));
+        } else {
+          setObjetivos([]);
+          setFoundPlanId(null);
         }
+      }).catch(() => {
+        setObjetivos([]);
+        setFoundPlanId(null);
       });
     }
   }, [planActivo, pacienteId]);
@@ -52,7 +62,7 @@ export default function SesionTerapiaModal({ open, onClose, pacienteId, planActi
     }
     try {
       // 1. Crear sesión de terapia
-      const planId = planActivo || (objetivos.length > 0 ? objetivos[0].id : null);
+      const planId = planActivo || foundPlanId || null;
       if (!planId) {
         setError('No se encontró un plan de tratamiento activo.');
         return;
