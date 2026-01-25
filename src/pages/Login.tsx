@@ -3,6 +3,7 @@ import apiFetch from '../api/client'
 import { useNavigate } from 'react-router-dom';
 import '../App.css';
 import { Box, Button, TextField, Typography, Link as MuiLink, Alert, CircularProgress, Paper } from '@mui/material';
+import useApiError from '../hooks/useApiError';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -28,13 +29,14 @@ const Login: React.FC = () => {
     setError('');
     if (!validate()) return;
     setLoading(true);
+    const { format } = useApiError();
     try {
       const data = await apiFetch('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) })
       localStorage.setItem('accessToken', data.accessToken);
       localStorage.setItem('refreshToken', data.refreshToken);
       navigate('/');
     } catch (err: any) {
-      setError(err?.message || 'Error de red o del servidor.');
+      setError(format(err));
     } finally {
       setLoading(false);
     }

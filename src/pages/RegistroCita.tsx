@@ -26,12 +26,13 @@ export default function RegistroCita() {
       setFecha('')
       setPacienteDni('')
     } catch (err: any) {
-      // Manejo de error específico para el mensaje del backend
-      if (err?.message === 'El dni del paciente no está registrado') {
-        setError('El dni del paciente no está registrado')
-      } else {
-        setError(err?.error?.detail || err?.message || 'Error al crear cita')
-      }
+        // Manejo de error específico para el mensaje del backend
+        const { format } = await import('../hooks/useApiError')
+        if (err?.message === 'El dni del paciente no está registrado') {
+          setError('El dni del paciente no está registrado')
+        } else {
+          setError(format(err) || 'Error al crear cita')
+        }
     }
   }
 

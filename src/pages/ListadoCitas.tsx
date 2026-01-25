@@ -130,7 +130,8 @@ export default function ListadoCitas() {
       setShowAtencion(false);
       fetchCitas();
     } catch (err: any) {
-      setModalError(err.message || 'Error al registrar atención clínica');
+      const { format } = await import('../hooks/useApiError')
+      setModalError(format(err) || 'Error al registrar atención clínica');
     }
   };
 
@@ -158,8 +159,9 @@ export default function ListadoCitas() {
       cerrarModal();
       fetchCitas();
     } catch (err: any) {
+      const { format } = await import('../hooks/useApiError')
       if (err.status === 409) setModalError('Profesional no disponible en ese horario.');
-      else setModalError(err.message || 'Error al aprobar cita');
+      else setModalError(format(err) || 'Error al aprobar cita');
     }
   };
 
@@ -178,7 +180,8 @@ export default function ListadoCitas() {
       setMotivoRechazo('');
       fetchCitas();
     } catch (err: any) {
-      setModalError(err.message || 'Error al rechazar cita');
+      const { format } = await import('../hooks/useApiError')
+      setModalError(format(err) || 'Error al rechazar cita');
     }
   };
 

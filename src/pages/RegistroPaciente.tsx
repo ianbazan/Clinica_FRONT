@@ -77,8 +77,10 @@ export default function RegistroPaciente() {
       setPatientData({ nombre: '', apellido: '', genero: '', dni: '', fechaNacimiento: '', nivelAutismo: '' })
     } catch (err: any) {
       console.error('Error al registrar:', err)
-      setError(err.message || 'Error al registrar paciente y tutor')
-      alert('❌ Error: ' + (err.message || 'No se pudo completar el registro'))
+      const { format } = await import('../hooks/useApiError')
+      const friendly = format(err)
+      setError(friendly)
+      alert('❌ Error: ' + friendly)
     } finally {
       setLoading(false)
     }

@@ -9,6 +9,7 @@ import ListadoCitas from './pages/ListadoCitas';
 import GestionTerapias from './pages/GestionTerapias';
 import Calendario from './pages/Calendario';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import { AuthProvider, useAuth } from './auth/mockAuth';
 import BannerCarousel from './components/BannerCarousel';
 import { isTokenExpired } from "./auth/jwtUtils";
@@ -152,6 +153,7 @@ export default function AppRoutes() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           <Route
             path="*"
             element={
