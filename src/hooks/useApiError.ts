@@ -18,6 +18,8 @@ export function formatApiError(err: any): string {
   return msg.replace(/^API\s*\d+\s*[^:]*:\s*/i, '') || 'Error de red o del servidor.'
 }
 
+export const format = formatApiError
+
 export default function useApiError() {
-  return { format: formatApiError }
+  return { format }
 }
