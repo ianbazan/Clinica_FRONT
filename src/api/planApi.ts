@@ -126,16 +126,50 @@ export async function updateActivity(id: number, body: Partial<ActivityDto>): Pr
 
 // --- Progress Report ---
 export async function getProgressReport(patientId: number, from: string, to: string): Promise<any> {
-  const query: Record<string, string | number | boolean> = { patientId, from, to }
-  return apiFetch('/api/progress-report', { query })
+  const normalize = (s: string, end = false) => {
+    if (!s) return s
+    // if already contains time, keep as-is
+    if (s.includes('T')) return s
+    return `${s}${end ? 'T23:59:59' : 'T00:00:00'}`
+  }
+  const query: Record<string, string | number | boolean> = {
+    patientId,
+    from: normalize(from, false),
+    to: normalize(to, true),
+  }
+  return apiFetch('/api/progress-report', { query, method: 'GET' })
 }
 
 export async function generateProgressReportPDF(patientId: number, from: string, to: string): Promise<Blob> {
   // apiFetch parses JSON; for binary response use fetch with absolute URL
   const path = `/api/progress-report/pdf?patientId=${patientId}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
-  const res = await fetch(new URL(path, API_BASE).toString(), { method: 'POST' })
-  if (!res.ok) throw new Error(`API ${res.status} ${res.statusText}`)
-  return res.blob()
+  const url = new URL(path, API_BASE).toString()
+
+  // Try POST with empty body first (some servers expect POST but no request body)
+  try {
+    const res = await fetch(url, { method: 'POST', headers: { Accept: 'application/pdf' }, body: '' })
+    if (res.ok) return res.blob()
+    // if server returned JSON error, try to include it in thrown Error
+    const txt = await res.text()
+    // fallthrough to try GET as fallback if server returned 5xx
+    if (res.status >= 500) {
+      // try GET fallback below
+      console.warn('POST to generate PDF failed, status', res.status, 'trying GET fallback')
+    } else {
+      throw new Error(`API ${res.status} ${res.statusText}: ${txt}`)
+    }
+  } catch (postErr) {
+    // Continue to GET fallback
+    console.warn('POST attempt failed:', postErr)
+  }
+
+  // Fallback: try GET request (some deployments accept GET with query params)
+  const resGet = await fetch(url, { method: 'GET', headers: { Accept: 'application/pdf' } })
+  if (!resGet.ok) {
+    const txt = await resGet.text()
+    throw new Error(`API ${resGet.status} ${resGet.statusText}: ${txt}`)
+  }
+  return resGet.blob()
 }
 
 // Eliminado ObjetivoDto duplicado, usar solo ObjectiveDto

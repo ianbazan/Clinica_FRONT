@@ -30,11 +30,11 @@
   flex: 1;
 }
 
-/* Nota flotante */
+/* Nota flotante (draggable/fixed) */
 .note-floating {
-  position: absolute;
-  top: 0;
-  left: calc(90% + 1px);
+  position: fixed;
+  top: 80px;
+  right: 16px;
   width: 200px;
   background: var(--note-bg);
   border: 1px solid rgba(16, 24, 40, 0.08);
@@ -43,6 +43,13 @@
   color: var(--text);
   box-shadow: 0 10px 28px rgba(2, 6, 23, 0.08);
   line-height: 1.4;
+  touch-action: none; /* allow pointer dragging */
+  z-index: 1000;
+}
+
+.note-floating.dragging {
+  cursor: grabbing;
+  user-select: none;
 }
 
 /* Responsive */

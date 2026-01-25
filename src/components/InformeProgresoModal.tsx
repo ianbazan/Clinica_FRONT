@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Select, TextField, Typography, FormControl, InputLabel } from '@mui/material';
 import dayjs from 'dayjs';
-// Aquí deberías importar la API real de pacientes, sesiones, actividades y objetivos
-// import { listarPacientes, listarSesionesPorPaciente, listarObjetivos, ... } from '../api/...' 
+import { getProgressReport, generateProgressReportPDF } from '../api/planApi';
+import useApiError from '../hooks/useApiError';
 
 const pacientesMock = [
   { id: 1, nombre: 'Luis Espinoza' },
@@ -18,33 +18,39 @@ export default function InformeProgresoModal({ open, onClose }: { open: boolean;
   const [error, setError] = useState<string | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
+  const { format } = useApiError();
+
   const handleConsultar = async () => {
     setError(null);
-    // Aquí deberías llamar a la API para consolidar sesiones, actividades y objetivos
-    // Ejemplo:
-    // const data = await consolidarProgreso({ pacienteId, fechaInicio, fechaFin });
-    // setConsolidado(data);
-    // Simulación:
     if (!pacienteId) {
       setError('Selecciona un paciente.');
       return;
     }
-    setConsolidado({
-      sesiones: [
-        { fecha: '2025-12-01', nota: 'Sesión 1', actividades: ['Juego', 'Lectura'], objetivos: [{ titulo: 'Habla', estado: 'En progreso' }] },
-        { fecha: '2025-12-08', nota: 'Sesión 2', actividades: ['Dibujo'], objetivos: [{ titulo: 'Habla', estado: 'Completado' }] },
-      ],
-      resumenObjetivos: [
-        { titulo: 'Habla', estado: 'Completado' },
-        { titulo: 'Socialización', estado: 'En progreso' },
-      ],
-    });
+    try {
+      const fromDateTime = dayjs(fechaInicio).format('YYYY-MM-DDT00:00:00')
+      const toDateTime = dayjs(fechaFin).format('YYYY-MM-DDT23:59:59')
+      const data = await getProgressReport(Number(pacienteId), fromDateTime, toDateTime);
+      setConsolidado(data);
+    } catch (e: any) {
+      setError(format(e));
+    }
   };
 
   const handleGenerarPDF = async () => {
-    // Aquí deberías llamar a la API para generar el PDF y obtener la URL
-    // Ejemplo: const url = await generarInformePDF({ pacienteId, fechaInicio, fechaFin, comentarios });
-    setPdfUrl('/ejemplo-informe.pdf');
+    setError(null);
+    if (!pacienteId) {
+      setError('Selecciona un paciente.');
+      return;
+    }
+    try {
+      const fromDateTime = dayjs(fechaInicio).format('YYYY-MM-DDT00:00:00')
+      const toDateTime = dayjs(fechaFin).format('YYYY-MM-DDT23:59:59')
+      const blob = await generateProgressReportPDF(Number(pacienteId), fromDateTime, toDateTime);
+      const url = URL.createObjectURL(blob);
+      setPdfUrl(url);
+    } catch (e: any) {
+      setError(format(e));
+    }
   };
 
   return (
@@ -95,16 +101,16 @@ export default function InformeProgresoModal({ open, onClose }: { open: boolean;
         {consolidado && (
           <Box>
             <Typography variant="h6">Sesiones registradas</Typography>
-            {consolidado.sesiones.map((s: any, idx: number) => (
+            {(consolidado.sesiones ?? []).map((s: any, idx: number) => (
               <Box key={idx} mb={1} p={1} border={1} borderColor="#eee">
                 <strong>{s.fecha}</strong>: {s.nota}<br />
-                Actividades: {s.actividades.join(', ')}<br />
-                Objetivos: {s.objetivos.map((o: any) => `${o.titulo} (${o.estado})`).join(', ')}
+                Actividades: {(s.actividades ?? []).join(', ')}<br />
+                Objetivos: {(s.objetivos ?? []).map((o: any) => `${o.titulo} (${o.estado})`).join(', ')}
               </Box>
             ))}
             <Typography variant="h6" mt={2}>Resumen de Objetivos</Typography>
             <ul>
-              {consolidado.resumenObjetivos.map((o: any, idx: number) => (
+              {(consolidado.resumenObjetivos ?? []).map((o: any, idx: number) => (
                 <li key={idx}>{o.titulo}: {o.estado}</li>
               ))}
             </ul>
