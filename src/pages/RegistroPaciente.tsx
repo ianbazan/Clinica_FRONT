@@ -160,17 +160,32 @@ export default function RegistroPaciente() {
               <TextField
                 id="tutor-dni"
                 label="DNI (8 dígitos)"
-                inputProps={{ maxLength: 8 }}
+                inputProps={{ maxLength: 8, inputMode: 'numeric', pattern: '[0-9]*' }}
                 value={guardianData.dni}
-                onChange={(e) => setGuardianData({ ...guardianData, dni: e.target.value })}
+                onChange={(e) => setGuardianData({ ...guardianData, dni: e.target.value.replace(/\D/g, '').slice(0, 8) })}
+                onKeyDown={(e) => {
+                  const allowed = ['Backspace','Tab','ArrowLeft','ArrowRight','Delete'];
+                  if (allowed.includes(e.key)) return;
+                  if (!/^[0-9]$/.test(e.key)) e.preventDefault();
+                }}
+                onPaste={(e) => {
+                  const pasted = (e.clipboardData || (window as any).clipboardData).getData('text') || '';
+                  const digits = pasted.replace(/\D/g, '').slice(0, 8);
+                  if (digits.length) {
+                    e.preventDefault();
+                    document.execCommand('insertText', false, digits);
+                  } else {
+                    e.preventDefault();
+                  }
+                }}
                 required
               />
               <TextField
                 id="tutor-telefono"
                 label="Teléfono (9 dígitos)"
-                inputProps={{ maxLength: 9 }}
+                inputProps={{ maxLength: 9, inputMode: 'numeric', pattern: '[0-9]*' }}
                 value={guardianData.telefono}
-                onChange={(e) => setGuardianData({ ...guardianData, telefono: e.target.value })}
+                onChange={(e) => setGuardianData({ ...guardianData, telefono: e.target.value.replace(/\D/g, '').slice(0, 9) })}
                 required
               />
               <TextField
@@ -218,9 +233,24 @@ export default function RegistroPaciente() {
               <TextField
                 id="paciente-dni"
                 label="DNI (8 dígitos)"
-                inputProps={{ maxLength: 8 }}
+                inputProps={{ maxLength: 8, inputMode: 'numeric', pattern: '[0-9]*' }}
                 value={patientData.dni}
-                onChange={(e) => setPatientData({ ...patientData, dni: e.target.value })}
+                onChange={(e) => setPatientData({ ...patientData, dni: e.target.value.replace(/\D/g, '').slice(0, 8) })}
+                onKeyDown={(e) => {
+                  const allowed = ['Backspace','Tab','ArrowLeft','ArrowRight','Delete'];
+                  if (allowed.includes(e.key)) return;
+                  if (!/^[0-9]$/.test(e.key)) e.preventDefault();
+                }}
+                onPaste={(e) => {
+                  const pasted = (e.clipboardData || (window as any).clipboardData).getData('text') || '';
+                  const digits = pasted.replace(/\D/g, '').slice(0, 8);
+                  if (digits.length) {
+                    e.preventDefault();
+                    document.execCommand('insertText', false, digits);
+                  } else {
+                    e.preventDefault();
+                  }
+                }}
                 required
               />
               <FormControl required>
@@ -246,7 +276,7 @@ export default function RegistroPaciente() {
                 onChange={(e) => setPatientData({ ...patientData, fechaNacimiento: e.target.value })}
                 required
               />
-              <FormControl required>
+              <FormControl>
                 <InputLabel id="paciente-nivel-autismo-label">Nivel de Autismo</InputLabel>
                 <Select
                   labelId="paciente-nivel-autismo-label"
