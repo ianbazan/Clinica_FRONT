@@ -39,6 +39,7 @@ import PTIModal from '../components/PTIModal';
 import SesionTerapiaModal from '../components/SesionTerapiaModal';
 import InformeProgresoModal from '../components/InformeProgresoModal';
 import CerrarPlanModal from '../components/CerrarPlanModal';
+import CreatePlanModal from '../components/CreatePlanModal';
 
 
 const estados = [
@@ -57,6 +58,7 @@ export default function ListadoCitas() {
     const [showInformeModal, setShowInformeModal] = useState(false);
     // Estado para modal de sesión de terapia
     const [showSesionModal, setShowSesionModal] = useState(false);
+    const [planActivoParaPaciente, setPlanActivoParaPaciente] = useState<number | undefined>(undefined);
   const { role } = useAuth();
   const [citas, setCitas] = useState<CitaDto[]>([])
   const [loading, setLoading] = useState(false)
@@ -95,6 +97,8 @@ export default function ListadoCitas() {
   })
   // Estado para modal PTI
   const [showPTIModal, setShowPTIModal] = useState(false);
+  const [showCreatePlanModal, setShowCreatePlanModal] = useState(false);
+  const [createPlanContext, setCreatePlanContext] = useState<{ pacienteId: number; profesionalId: number } | null>(null);
 
   const abrirModal = (cita: CitaDto) => {
     setCitaSeleccionada(cita)
@@ -156,6 +160,9 @@ export default function ListadoCitas() {
       // 2. Aprobar cita
       await patchCitaStatus(citaSeleccionada.id, { estado: 'Confirmada', profesionalId });
       setModalSuccess('Cita aprobada y confirmada exitosamente.');
+      // after confirming, offer to create a treatment plan; capture ids before clearing citaSeleccionada
+      setCreatePlanContext({ pacienteId: citaSeleccionada.pacienteId, profesionalId: Number(profesionalId) });
+      setShowCreatePlanModal(true);
       cerrarModal();
       fetchCitas();
     } catch (err: any) {
@@ -323,7 +330,17 @@ export default function ListadoCitas() {
                       <Button size="small" variant="outlined" sx={{ ml: 1 }} onClick={() => { setCitaSeleccionada(cita); setShowPTIModal(true); }}>
                         Registrar PTI
                       </Button>
-                      <Button size="small" variant="contained" sx={{ ml: 1 }} color="secondary" onClick={() => { setCitaSeleccionada(cita); setShowSesionModal(true); }}>
+                      <Button size="small" variant="contained" sx={{ ml: 1 }} color="secondary" onClick={async () => {
+                        setCitaSeleccionada(cita);
+                        // fetch active plan for this patient and pass to modal
+                        try {
+                          const plans = await import('../api/planApi').then(m => m.listTreatmentPlans(cita.pacienteId, true));
+                          setPlanActivoParaPaciente(plans && plans.length > 0 ? plans[0].id : undefined);
+                        } catch {
+                          setPlanActivoParaPaciente(undefined);
+                        }
+                        setShowSesionModal(true);
+                      }}>
                         Registrar Sesión
                       </Button>
                     </>
@@ -331,30 +348,42 @@ export default function ListadoCitas() {
                               {/* Botón para abrir informe de progreso (solo profesional) */}
                               {role === 'Psicologo' && (
                                 <>
-                                  <Button variant="outlined" color="info" sx={{ mb: 2, mr: 2 }} onClick={() => setShowInformeModal(true)}>
+                                  <Button variant="outlined" color="info" sx={{ mb: 2, mr: 2 }} onClick={() => { setCitaSeleccionada(cita); setShowInformeModal(true); }}>
                                     Consultar / Generar Informe de Progreso
                                   </Button>
-                                  <Button variant="outlined" color="warning" sx={{ mb: 2 }} onClick={() => setShowCerrarPlanModal(true)}>
+                                  <Button variant="outlined" color="warning" sx={{ mb: 2 }} onClick={() => { setCitaSeleccionada(cita); setShowCerrarPlanModal(true); }}>
                                     Cerrar / Reevaluar Plan Terapéutico
                                   </Button>
                                 </>
                               )}
                                     {/* Modal para cierre/reevaluación de plan */}
                                     <CerrarPlanModal
-                                      open={showCerrarPlanModal}
-                                      onClose={() => setShowCerrarPlanModal(false)}
-                                      pacienteId={citaSeleccionada?.pacienteId || 0}
-                                      onSuccess={() => setShowCerrarPlanModal(false)}
-                                    />
+                                          open={showCerrarPlanModal}
+                                          onClose={() => setShowCerrarPlanModal(false)}
+                                          pacienteId={citaSeleccionada?.pacienteId || 0}
+                                          onSuccess={() => setShowCerrarPlanModal(false)}
+                                        />
                               {/* Modal para registrar sesión de terapia y progreso */}
                                 {/* Modal para informe de progreso */}
-                                <InformeProgresoModal open={showInformeModal} onClose={() => setShowInformeModal(false)} />
+                                    <InformeProgresoModal
+                                      open={showInformeModal}
+                                      onClose={() => setShowInformeModal(false)}
+                                      pacienteId={citaSeleccionada?.pacienteId || undefined}
+                                      scheduledDate={citaSeleccionada?.fechaProgramada}
+                                    />
                               <SesionTerapiaModal
                                 open={showSesionModal}
                                 onClose={() => setShowSesionModal(false)}
                                 pacienteId={citaSeleccionada?.pacienteId || 0}
-                                planActivo={undefined} // Aquí se puede pasar el plan activo si se obtiene
+                                planActivo={planActivoParaPaciente} // plan activo obtenido al abrir modal
                                 onSuccess={() => { setShowSesionModal(false); fetchCitas(); }}
+                              />
+                              <CreatePlanModal
+                                open={showCreatePlanModal}
+                                onClose={() => { setShowCreatePlanModal(false); setCreatePlanContext(null); }}
+                                pacienteId={createPlanContext?.pacienteId ?? 0}
+                                profesionalId={createPlanContext?.profesionalId ?? 0}
+                                onSuccess={(planId) => { setShowCreatePlanModal(false); setCreatePlanContext(null); fetchCitas(); }}
                               />
                         {/* Modal para registrar PTI y objetivos */}
                         <PTIModal

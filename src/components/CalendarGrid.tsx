@@ -1,7 +1,6 @@
 
 import { useMemo } from 'react'
 import dayjs from 'dayjs'
-import { employees } from '../data/mockEmployees';
 import type { Appointment } from '../types/appointment';
 
 interface Props {
@@ -36,7 +35,7 @@ export default function CalendarGrid({ month, appointments, onPrev, onNext, onSe
     return map;
   }, [appointments, filterClient]);
 
-  return (
+    return (
     <div className="calendar-root">
       <div className="calendar-header">
         <button onClick={onPrev}>&lt;</button>
@@ -71,7 +70,10 @@ export default function CalendarGrid({ month, appointments, onPrev, onNext, onSe
                     <span className="appt-client"> — {a.patientName}</span>
                     <div className="appt-notes">{a.reason}</div>
                     <div className="appt-professional" style={{ fontSize: 11, color: '#888' }}>
-                      {(a.professionalName || (employees.find(e => e.id === a.professionalId)?.name)) ? `Prof: ${a.professionalName || (employees.find(e => e.id === a.professionalId)?.name)}` : ''}
+                      {(() => {
+                        const prof = a.professionalName ?? (a.professionalId ? `ID:${a.professionalId}` : '');
+                        return prof ? `Prof: ${prof}` : '';
+                      })()}
                     </div>
                   </div>
                 ))}

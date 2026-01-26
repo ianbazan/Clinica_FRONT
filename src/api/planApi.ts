@@ -171,17 +171,3 @@ export async function generateProgressReportPDF(patientId: number, from: string,
   }
   return resGet.blob()
 }
-
-// Eliminado ObjetivoDto duplicado, usar solo ObjectiveDto
-
-// --- (No duplicar funciones en español, ya existen en inglés arriba) ---
-
-// --- (No duplicar funciones en español, ya existen en inglés arriba) ---
-
-// Listar planes de un paciente
-export async function listarPlanesPorPaciente(pacienteId: number): Promise<PlanTratamientoDto[]> {
-  return apiFetch('/api/plan_tratamiento', { query: { pacienteId } })
-}
-
-// Listar objetivos de un plan
-// --- (No duplicar funciones en español, ya existen en inglés arriba) ---

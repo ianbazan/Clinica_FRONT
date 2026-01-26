@@ -16,11 +16,27 @@ export default function CerrarPlanModal({ open, onClose, pacienteId, onSuccess }
   const [accion, setAccion] = useState<'cerrar' | 'reevaluar' | ''>('');
   const [estadoReeval, setEstadoReeval] = useState<'En evaluación' | 'Reevaluado'>('En evaluación');
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [noPlans, setNoPlans] = useState(false);
 
   useEffect(() => {
     if (pacienteId && open) {
-      listTreatmentPlans(pacienteId, true).then(ps => setPlanes(ps));
+      setNoPlans(false)
+      listTreatmentPlans(pacienteId, true)
+        .then(ps => {
+          if (ps === null) {
+            // apiFetch returns null for 204 No Content
+            setPlanes([])
+            setNoPlans(true)
+          } else {
+            setPlanes(ps || [])
+            setNoPlans(false)
+          }
+        })
+        .catch(() => {
+          setPlanes([])
+          setNoPlans(false)
+        })
     }
   }, [pacienteId, open]);
 
@@ -36,8 +52,12 @@ export default function CerrarPlanModal({ open, onClose, pacienteId, onSuccess }
       } else {
         await reevaluateTreatmentPlan(Number(planId));
       }
-      setSuccess(true);
-      if (onSuccess) onSuccess();
+      // show specific success message and delay calling onSuccess so user sees it
+      const msg = accion === 'cerrar' ? 'Plan cerrado correctamente.' : 'Plan reevaluado correctamente.';
+      setSuccessMessage(msg);
+      setTimeout(() => {
+        if (onSuccess) onSuccess();
+      }, 1200);
     } catch (e: any) {
       setError(e.message || 'Error al actualizar el plan');
     }
@@ -62,7 +82,7 @@ export default function CerrarPlanModal({ open, onClose, pacienteId, onSuccess }
           sx={{ mb: 2 }}
         >
           <MenuItem value=""><em>Seleccione plan</em></MenuItem>
-          {planes.map(p => (
+          {(planes ?? []).map(p => (
             <MenuItem key={p.id} value={p.id}>Plan #{p.id} ({p.startDate} a {p.endDate})</MenuItem>
           ))}
         </Select>
@@ -91,7 +111,8 @@ export default function CerrarPlanModal({ open, onClose, pacienteId, onSuccess }
           </Box>
         )}
         {error && <Box color="error.main" mt={2}>{error}</Box>}
-        {success && <Box color="success.main" mt={2}>Plan actualizado correctamente.</Box>}
+        {successMessage && <Box color="success.main" mt={2}>{successMessage}</Box>}
+        {noPlans && <Box color="info.main" mt={2}>Aún no se registra un plan para este paciente.</Box>}
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancelar</Button>

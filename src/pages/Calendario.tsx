@@ -1,6 +1,5 @@
 import { useMemo, useState, useEffect } from 'react'
 import apiFetch from '../api/client'
-import { employees } from '../data/mockEmployees';
 import dayjs from 'dayjs'
 import CalendarGrid from '../components/CalendarGrid';
 import type { Appointment } from '../types/appointment';
@@ -56,15 +55,8 @@ export default function Calendario() {
     const set = new Set<string>();
     appointments.forEach((a: any) => {
       if (a.professionalName) set.add(a.professionalName);
-      else if (a.professionalId) {
-        const emp = employees.find(e => e.id === a.professionalId);
-        if (emp) set.add(emp.name);
-      }
+      else if (a.professionalId) set.add(`ID:${a.professionalId}`);
     });
-    // Si no hay ninguno, usar todos los empleados tipo Psicologo
-    if (set.size === 0) {
-      employees.filter(e => e.role === 'Psicologo').forEach(e => set.add(e.name));
-    }
     return ['ALL', ...Array.from(set)];
   }, [appointments]);
 
@@ -197,7 +189,7 @@ export default function Calendario() {
             <div className="calendar-main">
               <CalendarGrid
                 month={month}
-                appointments={professional === 'ALL' ? appointments : appointments.filter((a) => (a.professionalName || (employees.find(e => e.id === a.professionalId)?.name)) === professional)}
+                appointments={professional === 'ALL' ? appointments : appointments.filter((a) => ((a.professionalName ?? (a.professionalId ? `ID:${a.professionalId}` : '')) === professional))}
                 onPrev={onPrev}
                 onNext={onNext}
                 onSelectDate={onSelectDate}
@@ -233,7 +225,8 @@ export default function Calendario() {
                   const cellAppts = weekAppointments.filter((a: any) => {
                     const matchDay = dayjs(a.scheduledDate).format('YYYY-MM-DD') === d.format('YYYY-MM-DD');
                     const matchHour = dayjs(a.scheduledDate).hour() === h;
-                    const matchProf = professional === 'ALL' || (a.professionalName || (employees.find(e => e.id === a.professionalId)?.name)) === professional;
+                    const profName = a.professionalName ?? (a.professionalId ? `ID:${a.professionalId}` : '');
+                    const matchProf = professional === 'ALL' || profName === professional;
                     return matchDay && matchHour && matchProf;
                   });
                   return (
@@ -244,7 +237,10 @@ export default function Calendario() {
                           <span style={{ marginLeft: 4 }}>{a.patientName}</span>
                           <div style={{ fontSize: 11, color: '#555' }}>{a.reason}</div>
                           <div style={{ fontSize: 11, color: '#888' }}>
-                            {a.professionalName || (employees.find(e => e.id === a.professionalId)?.name) ? `Prof: ${a.professionalName || (employees.find(e => e.id === a.professionalId)?.name)}` : ''}
+                            {(() => {
+                              const prof = a.professionalName ?? (a.professionalId ? `ID:${a.professionalId}` : '');
+                              return prof ? `Prof: ${prof}` : '';
+                            })()}
                           </div>
                         </Paper>
                       ))}
@@ -263,13 +259,19 @@ export default function Calendario() {
         ) : (
           <ul>
             {appointmentsForSelected
-              .filter((a: any) => professional === 'ALL' || (a.professionalName || (employees.find(e => e.id === a.professionalId)?.name)) === professional)
+              .filter((a: any) => {
+                const profName = a.professionalName ?? (a.professionalId ? `ID:${a.professionalId}` : '');
+                return professional === 'ALL' || profName === professional;
+              })
               .map((a: any) => (
                 <li key={a.id} style={{ marginBottom: 8 }}>
                   <strong>{dayjs(a.scheduledDate).format('HH:mm')}</strong> — <em>{a.patientName}</em>
                   <div>{a.reason}</div>
                   <div style={{ fontSize: 11, color: '#888' }}>
-                    {a.professionalName || (employees.find(e => e.id === a.professionalId)?.name) ? `Prof: ${a.professionalName || (employees.find(e => e.id === a.professionalId)?.name)}` : ''}
+                    {(() => {
+                      const prof = a.professionalName ?? (a.professionalId ? `ID:${a.professionalId}` : '');
+                      return prof ? `Prof: ${prof}` : '';
+                    })()}
                   </div>
                   <div style={{ fontSize: 12, color: statusColor(a.status) }}>{a.status}</div>
                 </li>

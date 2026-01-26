@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { patients } from '../data/mockPatients';
+import { useMemo, useState, useEffect } from 'react';
+import { listPatients } from '../api/patientApi';
 import {
   Box,
   Button,
@@ -20,12 +20,20 @@ export default function HistorialClinico() {
   const [query, setQuery] = useState('')
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(5)
+  const [patients, setPatients] = useState<any[]>([])
+
+  useEffect(() => {
+    let mounted = true
+    listPatients()
+      .then((data) => { if (!mounted) return; setPatients(data ?? []) })
+    return () => { mounted = false }
+  }, [])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
     if (!q) return patients
     return patients.filter((p) => Object.values(p).join(' ').toLowerCase().includes(q))
-  }, [query])
+  }, [query, patients])
 
   const total = filtered.length
   const totalPages = Math.max(1, Math.ceil(total / pageSize))

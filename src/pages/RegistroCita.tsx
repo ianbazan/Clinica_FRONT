@@ -1,6 +1,7 @@
 import './RegistroCita.css'
 import { useState } from 'react'
 import { crearCita } from '../api/citaApi'
+import { format } from '../hooks/useApiError'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
 
@@ -26,13 +27,18 @@ export default function RegistroCita() {
       setFecha('')
       setPacienteDni('')
     } catch (err: any) {
-        // Manejo de error específico para el mensaje del backend
-        const { format } = await import('../hooks/useApiError')
-        if (err?.message === 'El dni del paciente no está registrado') {
-          setError('El dni del paciente no está registrado')
+      try {
+        const friendly = format(err) || 'Error al crear cita'
+        const raw = String(err?.message ?? err ?? '')
+        // Si el mensaje contiene referencia a DNI, mostrar texto específico más claro
+        if (/dni/i.test(friendly) || /dni/i.test(raw)) {
+          setError('El DNI del paciente no está registrado')
         } else {
-          setError(format(err) || 'Error al crear cita')
+          setError(friendly)
         }
+      } catch (e) {
+        setError('Error al crear cita')
+      }
     }
   }
 
@@ -62,7 +68,7 @@ export default function RegistroCita() {
         onChange={e => setPacienteDni(e.target.value.replace(/[^0-9]/g, ''))}
         required
         fullWidth
-        inputProps={{ maxLength: 15 }}
+        inputProps={{ maxLength: 8, inputMode: 'numeric', pattern: '[0-9]*' }}
       />
       <Button type="submit" variant="contained">Solicitar</Button>
       {mensaje && <div style={{ color: 'green' }}>{mensaje}</div>}

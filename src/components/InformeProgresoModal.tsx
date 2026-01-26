@@ -1,16 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Select, TextField, Typography, FormControl, InputLabel } from '@mui/material';
 import dayjs from 'dayjs';
 import { getProgressReport, generateProgressReportPDF } from '../api/planApi';
 import useApiError from '../hooks/useApiError';
+import { listPatients } from '../api/patientApi';
+import type { PatientDto } from '../api/patientApi';
 
-const pacientesMock = [
-  { id: 1, nombre: 'Luis Espinoza' },
-  { id: 2, nombre: 'Alexandra Espinoza' },
-];
-
-export default function InformeProgresoModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+export default function InformeProgresoModal({ open, onClose, pacienteId: initialPacienteId, scheduledDate }: { open: boolean; onClose: () => void; pacienteId?: number; scheduledDate?: string }) {
   const [pacienteId, setPacienteId] = useState<number | ''>('');
+  const [pacientes, setPacientes] = useState<PatientDto[]>([]);
   const [fechaInicio, setFechaInicio] = useState(dayjs().startOf('month').format('YYYY-MM-DD'));
   const [fechaFin, setFechaFin] = useState(dayjs().endOf('month').format('YYYY-MM-DD'));
   const [comentarios, setComentarios] = useState('');
@@ -19,6 +17,29 @@ export default function InformeProgresoModal({ open, onClose }: { open: boolean;
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   const { format } = useApiError();
+
+  // load patients
+  useEffect(() => {
+    listPatients().then(data => setPacientes(data || [])).catch(() => setPacientes([]))
+  }, [])
+
+  // when modal opens or initialPacienteId changes, preselect patient
+  useEffect(() => {
+    if (open) {
+      if (typeof initialPacienteId === 'number') setPacienteId(initialPacienteId)
+      // if scheduledDate provided, set both date inputs to that day
+      if (scheduledDate) {
+        try {
+          const d = dayjs(scheduledDate)
+          if (d.isValid()) {
+            const iso = d.format('YYYY-MM-DD')
+            setFechaInicio(iso)
+            setFechaFin(iso)
+          }
+        } catch {}
+      }
+    }
+  }, [open, initialPacienteId])
 
   const handleConsultar = async () => {
     setError(null);
@@ -73,7 +94,7 @@ export default function InformeProgresoModal({ open, onClose }: { open: boolean;
               onChange={e => setPacienteId(Number(e.target.value))}
             >
               <MenuItem value=""><em>Seleccione</em></MenuItem>
-              {pacientesMock.map(p => <MenuItem key={p.id} value={p.id}>{p.nombre}</MenuItem>)}
+              {pacientes.map(p => <MenuItem key={p.id} value={p.id}>{p.name} {p.lastName}</MenuItem>)}
             </Select>
           </FormControl>
           

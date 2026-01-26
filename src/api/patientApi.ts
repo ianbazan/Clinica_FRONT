@@ -31,3 +31,7 @@ export async function createGuardian(body: GuardianDto): Promise<GuardianDto> {
 export async function createPatient(body: PatientDto): Promise<PatientDto> {
   return apiFetch('/api/patient', { method: 'POST', body: JSON.stringify(body) })
 }
+
+export async function listPatients(query?: Record<string, string | number | boolean>): Promise<PatientDto[]> {
+  return apiFetch('/api/patient', { query })
+}
