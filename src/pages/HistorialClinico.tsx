@@ -71,6 +71,9 @@ export default function HistorialClinico() {
         </Select>
       </Box>
 
+      {loading && <Box color="info.main" mb={2}>Cargando...</Box>}
+      {error && <Box color="error.main" mb={2}>{error}</Box>}
+
       <TableContainer component={Paper} sx={{ mt: 1 }}>
         <Table>
           <TableHead>

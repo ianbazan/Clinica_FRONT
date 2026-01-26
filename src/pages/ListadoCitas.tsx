@@ -415,6 +415,8 @@ export default function ListadoCitas() {
         rowsPerPageOptions={[rowsPerPage]}
       />
 
+      <div style={{ marginTop: 8 }}>Pagina {page + 1} / {totalPages}</div>
+
       {/* Renderizar modales una sola vez, controlados por el estado y usando la cita seleccionada */}
       <CerrarPlanModal
         open={showCerrarPlanModal}
@@ -440,7 +442,7 @@ export default function ListadoCitas() {
         onClose={() => { setShowCreatePlanModal(false); setCreatePlanContext(null); }}
         pacienteId={createPlanContext?.pacienteId ?? 0}
         profesionalId={createPlanContext?.profesionalId ?? 0}
-        onSuccess={(planId) => { setShowCreatePlanModal(false); setCreatePlanContext(null); fetchCitas(); }}
+        onSuccess={() => { setShowCreatePlanModal(false); setCreatePlanContext(null); fetchCitas(); }}
       />
       <PTIModal
         open={showPTIModal}
