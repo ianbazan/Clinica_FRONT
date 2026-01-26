@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query'
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Select, TextField, Typography, FormControl, InputLabel } from '@mui/material';
 import dayjs from 'dayjs';
 import { getProgressReport, generateProgressReportPDF } from '../api/planApi';
@@ -18,10 +19,9 @@ export default function InformeProgresoModal({ open, onClose, pacienteId: initia
 
   const { format } = useApiError();
 
-  // load patients
-  useEffect(() => {
-    listPatients().then(data => setPacientes(data || [])).catch(() => setPacientes([]))
-  }, [])
+  // load patients via react-query
+  const { data: pacientesData } = useQuery({ queryKey: ['patients'], queryFn: () => listPatients(), staleTime: 1000 * 60 * 5 })
+  useEffect(() => { setPacientes(pacientesData || []) }, [pacientesData])
 
   // when modal opens or initialPacienteId changes, preselect patient
   useEffect(() => {

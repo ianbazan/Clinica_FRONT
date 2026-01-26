@@ -84,7 +84,7 @@ const Login: React.FC = () => {
 
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
             <MuiLink href="/register" underline="hover">¿No tienes cuenta?</MuiLink>
-            <MuiLink href="/support" underline="hover">¿Olvidaste tu contraseña?</MuiLink>
+            <MuiLink href="/" underline="hover">¿Olvidaste tu contraseña?</MuiLink>
           </Box>
         </Box>
       </Paper>

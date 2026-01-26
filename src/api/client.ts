@@ -6,7 +6,11 @@ type FetchOptions = RequestInit & { query?: Record<string, string | number | boo
 function buildUrl(path: string, query?: Record<string, string | number | boolean>) {
   const u = new URL(path, API_BASE)
   if (query) {
-    Object.entries(query).forEach(([k, v]) => u.searchParams.set(k, String(v)))
+    Object.entries(query).forEach(([k, v]) => {
+      // skip undefined or null so they are not serialized as the string "undefined"
+      if (v === undefined || v === null) return
+      u.searchParams.set(k, String(v))
+    })
   }
   return u.toString()
 }

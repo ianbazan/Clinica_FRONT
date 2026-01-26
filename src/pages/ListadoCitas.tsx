@@ -34,6 +34,7 @@ import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Paper from '@mui/material/Paper'
+import TablePagination from '@mui/material/TablePagination'
 import { getProfesionales, type ProfesionalDto } from '../api/profesionalApi'
 import PTIModal from '../components/PTIModal';
 import SesionTerapiaModal from '../components/SesionTerapiaModal';
@@ -100,16 +101,25 @@ export default function ListadoCitas() {
   const [showCreatePlanModal, setShowCreatePlanModal] = useState(false);
   const [createPlanContext, setCreatePlanContext] = useState<{ pacienteId: number; profesionalId: number } | null>(null);
 
-  const abrirModal = (cita: CitaDto) => {
+  const abrirModal = (cita: CitaDto, openAtencion = false) => {
+    console.log('abrirModal()', { id: cita?.id, openAtencion, estado: cita?.estado, profesionalId: cita?.profesionalId });
     setCitaSeleccionada(cita)
     setProfesionalId('')
     setModalError(null)
-    setShowModal(true)
-    setShowAtencion(false)
     setShowReject(false)
     setMotivoRechazo('')
     setAtencion({ motivo: '', evaluacion: '', diagnostico: '', observaciones: '', plan: '' })
+    setShowModal(true)
+    setShowAtencion(openAtencion)
   }
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [totalPages, setTotalPages] = useState(1)
+
+  useEffect(() => {
+    // reset page when list changes client-side
+    setPage(0)
+  }, [])
   // Guardar atención clínica y marcar cita como atendida
   const handleGuardarAtencion = async () => {
     if (!citaSeleccionada) return;
@@ -144,6 +154,7 @@ export default function ListadoCitas() {
     setCitaSeleccionada(null)
     setProfesionalId('')
     setModalError(null)
+    setShowAtencion(false)
   }
 
   // Aprobar cita: valida disponibilidad y PATCH estado
@@ -193,15 +204,39 @@ export default function ListadoCitas() {
   };
 
   useEffect(() => {
-    fetchCitas()
+    // initial load: first page (0-based)
+    fetchCitas({}, 0)
   }, [])
 
-  const fetchCitas = async (params = {}) => {
+  const getFilterParams = () => {
+    const params: Record<string, any> = {}
+    if (filtros.pacienteId) params.pacienteId = filtros.pacienteId
+    if (filtros.profesionalId) params.profesionalId = filtros.profesionalId
+    if (filtros.estado) params.estado = filtros.estado
+    if (filtros.from) params.from = filtros.from
+    if (filtros.to) params.to = filtros.to
+    return params
+  }
+
+  const [totalCount, setTotalCount] = useState(0)
+
+  const fetchCitas = async (params: Record<string, any> = {}, pageNumber = 0) => {
     setLoading(true)
     setError(null)
     try {
-      const data = await listarCitas(params)
-      setCitas(data.content || [])
+      const q = { ...params, page: pageNumber, size: rowsPerPage }
+      const data = await listarCitas(q)
+      // server returns Spring-style paginated object
+      const content = data?.content ?? []
+      setCitas(Array.isArray(content) ? content : [])
+      const total = data?.totalElements ?? data?.total ?? (Array.isArray(data) ? data.length : 0)
+      setTotalCount(Number(total) || 0)
+      const serverPage = typeof data?.number === 'number' ? Number(data.number) : pageNumber
+      setPage(serverPage)
+      const serverSize = typeof data?.size === 'number' ? Number(data.size) : rowsPerPage
+      setRowsPerPage(serverSize)
+      const serverTotalPages = typeof data?.totalPages === 'number' ? Number(data.totalPages) : Math.max(1, Math.ceil(Number(total) / serverSize))
+      setTotalPages(serverTotalPages)
     } catch (err: any) {
       setError('Error al cargar citas')
     } finally {
@@ -225,7 +260,8 @@ export default function ListadoCitas() {
     if (filtros.estado) params.estado = filtros.estado
     if (filtros.from) params.from = filtros.from
     if (filtros.to) params.to = filtros.to
-    fetchCitas(params)
+    // fetch first page with filters (0-based)
+    fetchCitas(params, 0)
   }
 
   return (
@@ -324,7 +360,7 @@ export default function ListadoCitas() {
                   {/* Solo mostrar botón de atención si es profesional y la cita está confirmada y asignada a él */}
                   {role === 'Psicologo' && cita.estado === 'Confirmada' && cita.profesionalId && (
                     <>
-                      <IconButton onClick={() => { abrirModal(cita); setShowAtencion(true); }} color="primary" aria-label="Registrar atención clínica">
+                      <IconButton onClick={() => abrirModal(cita, true)} color="primary" aria-label="Registrar atención clínica">
                         <EditIcon />
                       </IconButton>
                       <Button size="small" variant="outlined" sx={{ ml: 1 }} onClick={() => { setCitaSeleccionada(cita); setShowPTIModal(true); }}>
@@ -356,43 +392,7 @@ export default function ListadoCitas() {
                                   </Button>
                                 </>
                               )}
-                                    {/* Modal para cierre/reevaluación de plan */}
-                                    <CerrarPlanModal
-                                          open={showCerrarPlanModal}
-                                          onClose={() => setShowCerrarPlanModal(false)}
-                                          pacienteId={citaSeleccionada?.pacienteId || 0}
-                                          onSuccess={() => setShowCerrarPlanModal(false)}
-                                        />
-                              {/* Modal para registrar sesión de terapia y progreso */}
-                                {/* Modal para informe de progreso */}
-                                    <InformeProgresoModal
-                                      open={showInformeModal}
-                                      onClose={() => setShowInformeModal(false)}
-                                      pacienteId={citaSeleccionada?.pacienteId || undefined}
-                                      scheduledDate={citaSeleccionada?.fechaProgramada}
-                                    />
-                              <SesionTerapiaModal
-                                open={showSesionModal}
-                                onClose={() => setShowSesionModal(false)}
-                                pacienteId={citaSeleccionada?.pacienteId || 0}
-                                planActivo={planActivoParaPaciente} // plan activo obtenido al abrir modal
-                                onSuccess={() => { setShowSesionModal(false); fetchCitas(); }}
-                              />
-                              <CreatePlanModal
-                                open={showCreatePlanModal}
-                                onClose={() => { setShowCreatePlanModal(false); setCreatePlanContext(null); }}
-                                pacienteId={createPlanContext?.pacienteId ?? 0}
-                                profesionalId={createPlanContext?.profesionalId ?? 0}
-                                onSuccess={(planId) => { setShowCreatePlanModal(false); setCreatePlanContext(null); fetchCitas(); }}
-                              />
-                        {/* Modal para registrar PTI y objetivos */}
-                        <PTIModal
-                          open={showPTIModal}
-                          onClose={() => setShowPTIModal(false)}
-                          pacienteId={citaSeleccionada?.pacienteId || 0}
-                          profesionalId={citaSeleccionada?.profesionalId || 0}
-                          onSuccess={() => { setShowPTIModal(false); fetchCitas(); }}
-                        />
+                                    {/* Modales: se renderizan una sola vez (fuera del mapeo de filas) */}
                   {/* Botón normal para admin/operadora o para asignar profesional */}
                   {((role !== 'Psicologo') || (cita.estado !== 'Confirmada' || !cita.profesionalId)) && (
                     <IconButton onClick={() => abrirModal(cita)} color="primary" aria-label="Editar cita">
@@ -405,6 +405,50 @@ export default function ListadoCitas() {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <TablePagination
+        component="div"
+        count={totalCount}
+        page={page}
+        onPageChange={(_, newPage) => fetchCitas(getFilterParams(), newPage)}
+        rowsPerPage={rowsPerPage}
+        rowsPerPageOptions={[rowsPerPage]}
+      />
+
+      {/* Renderizar modales una sola vez, controlados por el estado y usando la cita seleccionada */}
+      <CerrarPlanModal
+        open={showCerrarPlanModal}
+        onClose={() => setShowCerrarPlanModal(false)}
+        pacienteId={citaSeleccionada?.pacienteId || 0}
+        onSuccess={() => { setShowCerrarPlanModal(false); fetchCitas(); }}
+      />
+      <InformeProgresoModal
+        open={showInformeModal}
+        onClose={() => setShowInformeModal(false)}
+        pacienteId={citaSeleccionada?.pacienteId || undefined}
+        scheduledDate={citaSeleccionada?.fechaProgramada}
+      />
+      <SesionTerapiaModal
+        open={showSesionModal}
+        onClose={() => setShowSesionModal(false)}
+        pacienteId={citaSeleccionada?.pacienteId || 0}
+        planActivo={planActivoParaPaciente}
+        onSuccess={() => { setShowSesionModal(false); fetchCitas(); }}
+      />
+      <CreatePlanModal
+        open={showCreatePlanModal}
+        onClose={() => { setShowCreatePlanModal(false); setCreatePlanContext(null); }}
+        pacienteId={createPlanContext?.pacienteId ?? 0}
+        profesionalId={createPlanContext?.profesionalId ?? 0}
+        onSuccess={(planId) => { setShowCreatePlanModal(false); setCreatePlanContext(null); fetchCitas(); }}
+      />
+      <PTIModal
+        open={showPTIModal}
+        onClose={() => setShowPTIModal(false)}
+        pacienteId={citaSeleccionada?.pacienteId || 0}
+        profesionalId={citaSeleccionada?.profesionalId || 0}
+        onSuccess={() => { setShowPTIModal(false); fetchCitas(); }}
+      />
 
       {/* Modal MUI para asignar profesional */}
       <Dialog open={showModal} onClose={cerrarModal}>

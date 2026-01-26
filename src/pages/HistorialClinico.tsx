@@ -1,5 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query'
 import { listPatients } from '../api/patientApi';
+import { listMedicalHistories, type MedicalHistoryDto } from '../api/medicalHistoryApi'
 import {
   Box,
   Button,
@@ -21,13 +23,16 @@ export default function HistorialClinico() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(5)
   const [patients, setPatients] = useState<any[]>([])
+  const [histories, setHistories] = useState<MedicalHistoryDto[]>([])
 
-  useEffect(() => {
-    let mounted = true
-    listPatients()
-      .then((data) => { if (!mounted) return; setPatients(data ?? []) })
-    return () => { mounted = false }
-  }, [])
+  const { data: patientsData, isLoading: loadingPatients, isError: patientsError } = useQuery({ queryKey: ['patients'], queryFn: () => listPatients(), staleTime: 1000 * 60 * 5 })
+  const { data: historiesData, isLoading: loadingHistories, isError: historiesError } = useQuery({ queryKey: ['medicalHistories'], queryFn: () => listMedicalHistories(), staleTime: 1000 * 60 * 5 })
+
+  useEffect(() => { if (patientsData) setPatients(patientsData) }, [patientsData])
+  useEffect(() => { if (historiesData) setHistories(historiesData) }, [historiesData])
+
+  const loading = loadingPatients || loadingHistories
+  const error = patientsError || historiesError ? 'No se pudieron cargar los datos' : null
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -77,14 +82,27 @@ export default function HistorialClinico() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {pageData.map((p) => (
-              <TableRow key={p.id}>
-                <TableCell>{p.name}</TableCell>
-                <TableCell>{p.dob}</TableCell>
-                <TableCell>{p.lastVisit}</TableCell>
-                <TableCell>{p.notes}</TableCell>
-              </TableRow>
-            ))}
+            {pageData.map((p) => {
+              const patientId = Number(p.id)
+              const patientHistories = histories.filter(h => Number(h.patientId) === patientId)
+              let lastVisit = ''
+              let notes = ''
+              if (patientHistories.length > 0) {
+                const latest = patientHistories.reduce((a, b) => new Date(a.createdAt) > new Date(b.createdAt) ? a : b)
+                lastVisit = latest.createdAt.split('T')[0]
+                notes = latest.description ?? latest.diagnosis ?? ''
+              } else {
+                notes = 'Falta generar historial clínico'
+              }
+              return (
+                <TableRow key={p.id}>
+                  <TableCell>{`${p.name} ${p.lastName}`}</TableCell>
+                  <TableCell>{p.birthDate ?? p.dob}</TableCell>
+                  <TableCell>{lastVisit}</TableCell>
+                  <TableCell>{notes}</TableCell>
+                </TableRow>
+              )
+            })}
           </TableBody>
         </Table>
       </TableContainer>

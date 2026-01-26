@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Box, Typography, MenuItem, Select, InputLabel, FormControl, List, ListItem, ListItemText, IconButton } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -23,27 +24,34 @@ export default function SesionTerapiaModal({ open, onClose, pacienteId, planActi
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
+  const queryClient = useQueryClient()
+
+  // fetch active plans for patient (if planActivo not passed)
+  const { data: plansData } = useQuery({
+    queryKey: ['treatmentPlans', pacienteId, true],
+    queryFn: () => listTreatmentPlans(pacienteId, true),
+    enabled: !!pacienteId && !planActivo,
+    staleTime: 1000 * 60 * 5,
+  })
+
+  const effectivePlanId = planActivo || (plansData && plansData.length > 0 ? plansData[0].id : null)
+  // set foundPlanId when effectivePlanId changes
   useEffect(() => {
-    if (planActivo) {
-      setFoundPlanId(planActivo);
-      listObjectives(planActivo).then(data => setObjetivos(data || [])).catch(() => setObjetivos([]));
-    } else if (pacienteId) {
-      // Buscar plan activo automáticamente si no se pasa planActivo
-      listTreatmentPlans(pacienteId, true).then(plans => {
-        if (plans.length > 0) {
-          const planId = plans[0].id;
-          setFoundPlanId(planId);
-          listObjectives(planId).then(data => setObjetivos(data || [])).catch(() => setObjetivos([]));
-        } else {
-          setObjetivos([]);
-          setFoundPlanId(null);
-        }
-      }).catch(() => {
-        setObjetivos([]);
-        setFoundPlanId(null);
-      });
-    }
-  }, [planActivo, pacienteId]);
+    if (effectivePlanId && effectivePlanId !== foundPlanId) setFoundPlanId(effectivePlanId)
+  }, [effectivePlanId])
+
+  // fetch objectives for the active plan
+  const { data: objectivesData } = useQuery({
+    queryKey: ['objectives', foundPlanId],
+    queryFn: () => listObjectives(foundPlanId as number),
+    enabled: !!foundPlanId,
+    staleTime: 1000 * 60 * 5,
+  })
+  const effectiveObjetivos = objectivesData || []
+  // keep local copy for edits
+  if (Array.isArray(effectiveObjetivos) && JSON.stringify(effectiveObjetivos) !== JSON.stringify(objetivos)) {
+    setObjetivos(effectiveObjetivos)
+  }
 
   const handleAddActividad = () => {
     if (!nuevaActividad.trim()) return;
@@ -88,6 +96,8 @@ export default function SesionTerapiaModal({ open, onClose, pacienteId, planActi
       for (const [objId, estado] of Object.entries(objetivoEstados)) {
         await updateObjective(Number(objId), { status: estado });
       }
+      // invalidate objectives to refresh UI
+      if (foundPlanId) queryClient.invalidateQueries({ queryKey: ['objectives', foundPlanId] })
       setSuccess(true);
       if (onSuccess) onSuccess();
     } catch (e: any) {
